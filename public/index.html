@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLE UART Terminal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>BLE UART Terminal</h1>
+      </header>
+
+      <main>
+        <section class="connection-section">
+          <button id="connectBtn" class="primary-btn">Connect to Device</button>
+          <div id="deviceInfo" class="device-info hidden">
+            <p>Connected to: <span id="deviceName">None</span></p>
+            <button id="disconnectBtn" class="secondary-btn">Disconnect</button>
+          </div>
+        </section>
+
+        <section class="terminal-section">
+          <div id="terminal" class="terminal">
+            <!-- Terminal output will appear here -->
+          </div>
+          <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type your message..." disabled />
+            <button id="sendBtn" class="primary-btn" disabled>Send</button>
+          </div>
+          <div class="controls">
+            <button id="clearBtn" class="secondary-btn">Clear Terminal</button>
+            <button id="saveBtn" class="secondary-btn">Save Log</button>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>Nordic UART Service (NUS) Web Terminal</p>
+      </footer>
+    </div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
