@@ -40,6 +40,7 @@ Trigger a system event. The unit processes these as if they were physical button
 | `11` | `AUDIO_CMD` | Play a specific tone | `[Freq 16-bit] << 16 \| [Dur 16-bit]` |
 | `12` | `DISP_SYNC_START` | Start display timer | `[State 8-bit] \| ([ElapsedMS 24-bit] << 8)` |
 | `13` | `DISP_SYNC_STOP` | Stop/Freeze display | `[State 8] \| ([Result 4] << 8) \| ([Elapsed 20] << 12)` |
+| `25` | `STATE_CHANGE` | State machine transition | `[Lane 8] \| ([State 8] << 8)` |
 | `15` | `DISP_SYNC_MODE` | Change display discipline | `climb_mode_t` (0-3) |
 | `16` | `DISP_SYNC_PROG` | Update transition progress | Progress value |
 | `20` | `PAD_TRIGGERED` | Sensor activated | Node ID (e.g., 1010 for Lane A Start) |
@@ -74,6 +75,7 @@ In addition to request/response, the device emits asynchronous state/events over
 | `9` | `UI_RESET` | `0` | Configuration/UI refresh event. |
 | `12` | `DISP_SYNC_START` | `[state (8)] \\| ([elapsed_ms (24)] << 8)` | `state` is the timer state; `elapsed_ms` is the time already elapsed in that state. For `STATE_BEEPING`, the upper 24 bits may carry the active beep counter. |
 | `13` | `DISP_SYNC_STOP` | `[state (8)] \\| ([result (4)] << 8) \\| ([elapsed_ms (20)] << 12)` | `state` is the terminal display state; `result` is the climb result; `elapsed_ms` is the final elapsed time. |
+| `25` | `STATE_CHANGE` | `[lane (8)] \| ([state_idx (8)] << 8)` | Emitted when the internal timer/state-machine transitions. `state_idx` is the index from the state table in `EVENTS.md` (Event 25). Clients should use this to update UI state machines. |
 | `19` | `SHOW_IP` | `0` | Request the display to show the current IP address. |
 | `20` | `PAD_TRIGGERED` | source node ID | Example: `1010` = Lane A start pad; `1021` = Lane B end pad. |
 | `21` | `PAD_RELEASED` | source node ID | Pad release event. |
@@ -92,6 +94,10 @@ Examples:
  - `EVT:3 ts=162345678901234 meta=0` — Race start event
  - `EVT:20 ts=162345678901567 meta=1010` — Pad A start sensor triggered
  - `EVT:13 ts=162345678901890 meta=123456` — Display stop event with encoded final result/time
+
+ - `EVT:3 ts=162345678901234 meta=0` — Race start event
+ - `EVT:20 ts=162345678901567 meta=1010` — Pad A start sensor triggered (meta = source node id)
+ - `EVT:25 ts=162345678901890 meta=513` — Example `STATE_CHANGE` for lane 1, state 2 (`meta` = lane | (state<<8) => 0x0201 = 513)
 
 
 ### 2. Configuration (`CFG`)
