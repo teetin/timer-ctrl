@@ -154,6 +154,7 @@ class ClimbTimerApp {
   }
 
   syncFormWithConfig() {
+    this.updateTimerPreview();
     document.getElementById('cfg-climb').value = this.config.climb;
     document.getElementById('cfg-trans').value = this.config.trans;
     document.getElementById('cfg-mode').value = this.config.mode;
@@ -748,6 +749,9 @@ class ClimbTimerApp {
     const trans = document.getElementById('transPreview');
     const climb = document.getElementById('climbPreview');
     const state = document.getElementById('statePreview');
+    const tone = document.getElementById('tonePreview');
+    const wave = document.getElementById('wavePreview');
+    const ui = document.getElementById('uiPreview');
 
     if (!trans || !climb || !state) return;
 
@@ -755,6 +759,20 @@ class ClimbTimerApp {
     climb.textContent = `${this.config.climb}s`;
     state.textContent = this.getDisplayStateLabel();
     state.setAttribute('title', this.getDisplayStateLabel());
+
+    if (tone) {
+      const styles = ['PRAGUE', 'INNSB', 'JMSCA'];
+      tone.textContent = styles[this.config.beepStyle] || 'OFF';
+    }
+    if (wave) {
+      wave.textContent = this.config.waveform === 1 ? 'SQUARE' : 'SINE';
+    }
+    if (ui) {
+      const parts = [];
+      if (this.config.symbols) parts.push('SYM');
+      if (this.config.tenths) parts.push('10ths');
+      ui.textContent = parts.length > 0 ? parts.join('+') : 'STD';
+    }
   }
 
   getDisplayStateLabel() {
@@ -882,7 +900,6 @@ class ClimbTimerApp {
       root.style.setProperty('--text', '#ffffff');
       root.style.setProperty('--accent', '#ff6b35');
     }
-    this.sendConfig('theme', this.config.theme);
   }
 
   updateModeUI(mode) {
