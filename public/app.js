@@ -29,6 +29,7 @@ class ClimbTimerApp {
       assignedLane: 0,
     };
     // Display timer state (driven by incoming EVT/DISP messages)
+    this.systemState = 0; // climb_event_id_t from EVENTS.md
     this.displayState = 'idle'; // 'idle' | 'running' | 'paused' | 'finished'
     this.displayElapsedMs = 0; // milliseconds
     this.displayInterval = null;
@@ -72,24 +73,39 @@ class ClimbTimerApp {
     // Mode selection
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
+      this.sendConfig('mode', mode);
       this.updateModeUI(mode);
       this.updateTimerPreviewFromForm();
       document.getElementById('runModeConfig')?.classList.toggle('hidden', mode === 0);
     });
 
     // Config form inputs
-    document.getElementById('cfg-climb')?.addEventListener('input', () => this.updateTimerPreviewFromForm());
-    document.getElementById('cfg-trans')?.addEventListener('input', () => this.updateTimerPreviewFromForm());
-    document.getElementById('cfg-runmode')?.addEventListener('change', () => this.updateTimerPreviewFromForm());
+    document.getElementById('cfg-climb')?.addEventListener('change', (e) => {
+      this.sendConfig('climb', e.target.value);
+      this.updateTimerPreviewFromForm();
+    });
+    document.getElementById('cfg-trans')?.addEventListener('change', (e) => {
+      this.sendConfig('trans', e.target.value);
+      this.updateTimerPreviewFromForm();
+    });
+    document.getElementById('cfg-runmode')?.addEventListener('change', (e) => {
+      this.sendConfig('runmode', e.target.value);
+      this.updateTimerPreviewFromForm();
+    });
     document.getElementById('cfg-vol')?.addEventListener('input', (e) => {
       document.getElementById('volDisplay').textContent = e.target.value;
     });
+    document.getElementById('cfg-vol')?.addEventListener('change', (e) => {
+      this.sendConfig('vol', e.target.value);
+    });
     document.getElementById('cfg-symbols')?.addEventListener('change', (e) => {
       this.config.symbols = e.target.checked;
+      this.sendConfig('symbols', e.target.checked ? 1 : 0);
       this.updateSymbolUI();
     });
     document.getElementById('cfg-tenths')?.addEventListener('change', (e) => {
       this.config.tenths = e.target.checked;
+      this.sendConfig('tenths', e.target.checked ? 1 : 0);
       this.updateTimerTextFromMs();
     });
     document.getElementById('cfg-console')?.addEventListener('change', (e) => {
@@ -102,9 +118,18 @@ class ClimbTimerApp {
     });
     document.getElementById('cfg-maintenance')?.addEventListener('change', (e) => {
       this.config.maintenance = e.target.checked;
+      this.sendConfig('maint', e.target.checked ? 1 : 0);
     });
     document.getElementById('cfg-assigned-lane')?.addEventListener('change', (e) => {
-      this.config.assignedLane = parseInt(e.target.value, 10);
+      const lane = parseInt(e.target.value, 10);
+      this.config.assignedLane = lane;
+      this.sendConfig('lane', lane);
+    });
+    document.getElementById('cfg-beep-style')?.addEventListener('change', (e) => {
+      this.sendConfig('beep', e.target.value);
+    });
+    document.getElementById('cfg-waveform')?.addEventListener('change', (e) => {
+      this.sendConfig('wave', e.target.value);
     });
 
     // Terminal
@@ -239,11 +264,24 @@ class ClimbTimerApp {
   }
 
   parseEvent(data) {
-    // EVT <id> [meta] or EVT:<id> [meta]
-    const cleaned = data.trim().replace(/^EVT\s*:\s*/i, 'EVT ');
-    const parts = cleaned.split(/\s+/);
-    const id = parseInt(parts[1], 10);
-    const meta = parts.length > 2 ? parts.slice(2).join(' ') : null;
+    // Handle both formats:
+    // 1. EVT <id> [meta]
+    // 2. EVT:<id> ts=<ts> meta=<meta>
+    let id,
+      metaVal = 0;
+
+    if (data.includes('ts=') || data.includes('meta=')) {
+      const idMatch = data.match(/EVT:(\d+)/i);
+      id = idMatch ? parseInt(idMatch[1], 10) : NaN;
+      const metaMatch = data.match(/meta=(\d+)/i);
+      metaVal = metaMatch ? parseInt(metaMatch[1], 10) : 0;
+    } else {
+      const cleaned = data.trim().replace(/^EVT\s*:\s*/i, 'EVT ');
+      const parts = cleaned.split(/\s+/);
+      id = parseInt(parts[1], 10);
+      metaVal = parts.length > 2 ? parseInt(parts[2], 10) : 0;
+    }
+
     if (Number.isNaN(id)) {
       this.terminal.print('Invalid EVT payload: ' + data, 'error');
       return;
@@ -251,68 +289,124 @@ class ClimbTimerApp {
 
     switch (id) {
       case 3: // RACE_START
-        this.startDisplayTimer(0);
+        this.handleStateChange(0, 6); // RACING
+        this.startDisplayTimer(0, 6);
         break;
       case 6: // STARTER_BUTTON
-        // Toggle pause/resume on main button
-        if (this.displayState === 'running') {
-          this.pauseDisplayTimer();
-        } else if (this.displayState === 'paused') {
-          this.resumeDisplayTimer();
-        }
+        this.terminal.print('Starter Button Pressed', 'info');
         break;
       case 7: // RACE_FINISH
-        this.finishDisplayTimer();
+        this.handleStateChange(0, 7); // FINISHED
         break;
       case 8: // RACE_ABORT
+        this.handleStateChange(0, 0); // IDLE
+        break;
       case 9: // UI_RESET
         this.resetDisplayTimer();
         break;
-      case 12: // DISP_SYNC_START - meta may contain state and elapsed
-        // meta format: [State] | ([ElapsedMS] << 8) (we may receive a simple elapsed value)
-        this.parseDispSync(`DISP_SYNC_START ${meta || ''}`);
-        break;
-      case 13: // DISP_SYNC_STOP
-        this.parseDispSync(`DISP_SYNC_STOP ${meta || ''}`);
-        break;
-      case 15: // DISP_SYNC_MODE
-        if (meta !== null) {
-          const modeVal = parseInt(meta, 10);
-          if (!Number.isNaN(modeVal)) {
-            this.currentMode = modeVal;
-            this.updateModeDisplay();
-          }
+      case 12: // DISP_SYNC_START
+        {
+          const state = metaVal & 0xff;
+          const elapsedMs = (metaVal >> 8) & 0xffffff;
+          this.handleStateChange(0, state);
+          this.startDisplayTimer(elapsedMs, state);
         }
         break;
+      case 13: // DISP_SYNC_STOP
+        {
+          const state = metaVal & 0xff;
+          const result = (metaVal >> 8) & 0xf;
+          const elapsedMs = (metaVal >> 12) & 0xfffff;
+          this.displayElapsedMs = elapsedMs;
+          this.handleStateChange(0, state);
+          this.terminal.print(
+            `Sync Stop: Result=${result} Time=${(elapsedMs / 1000).toFixed(3)}s`,
+            'success'
+          );
+        }
+        break;
+      case 15: // DISP_SYNC_MODE
+        this.currentMode = metaVal;
+        this.updateModeDisplay();
+        break;
       case 16: // DISP_SYNC_PROG
-        // meta is progress value; show briefly in statePreview
-        if (meta !== null) {
-          const p = meta.toString();
-          const stateEl = document.getElementById('statePreview');
-          if (stateEl) {
-            stateEl.textContent = p;
-            setTimeout(() => this.updateTimerPreview(), 1500);
-          }
+        const stateEl = document.getElementById('statePreview');
+        if (stateEl) {
+          stateEl.textContent = `PROG: ${metaVal}%`;
+          setTimeout(() => this.updateTimerPreview(), 1500);
+        }
+        break;
+      case 20: // PAD_TRIGGERED
+        this.terminal.print(`Pad Triggered: ${metaVal}`, 'info');
+        break;
+      case 21: // PAD_RELEASED
+        this.terminal.print(`Pad Released: ${metaVal}`, 'info');
+        break;
+      case 25: // STATE_CHANGE
+        {
+          const lane = metaVal & 0xff;
+          const stateIdx = (metaVal >> 8) & 0xff;
+          this.handleStateChange(lane, stateIdx);
         }
         break;
       default:
-        // show event id for debugging
-        this.terminal.print(`Event ${id} ${meta || ''}`, 'info');
+        this.terminal.print(`Event ${id} meta=${metaVal}`, 'info');
     }
   }
 
+  static STATE_NAMES = [
+    'IDLE',
+    'PRECONDITION',
+    'STARTER_WAIT',
+    'BEEPING',
+    'TRANSITION',
+    'READY',
+    'RACING',
+    'FINISHED',
+    'FALSE_START',
+    'PAUSED',
+    'FALL',
+    'SPLASH',
+  ];
+
+  handleStateChange(lane, stateIdx) {
+    this.systemState = stateIdx;
+    const stateName = ClimbTimerApp.STATE_NAMES[stateIdx] || `UNKNOWN(${stateIdx})`;
+    this.terminal.print(`State Change [Lane ${lane}]: ${stateName}`, 'info');
+
+    // Manage local timer based on state
+    if (stateIdx === 6 || stateIdx === 4 || stateIdx === 3) {
+      // RACING, TRANSITION, BEEPING
+      if (this.displayState !== 'running') {
+        this.startDisplayTimer(0, stateIdx);
+      } else {
+        // Update total if state changed while running
+        if (stateIdx === 4) this.timerTotal = this.config.trans * 1000;
+        else if (stateIdx === 6) this.timerTotal = this.config.climb * 1000;
+      }
+    } else if (stateIdx === 7 || stateIdx === 8 || stateIdx === 10) {
+      // FINISHED, FALSE_START, FALL
+      this.finishDisplayTimer();
+    } else if (stateIdx === 0 || stateIdx === 11) {
+      // IDLE, SPLASH
+      this.resetDisplayTimer();
+    } else if (stateIdx === 9) {
+      // PAUSED
+      this.pauseDisplayTimer();
+    }
+
+    this.updateTimerPreview();
+  }
+
   parseDispSync(data) {
-    // Accept several shapes: DISP_SYNC_START <state> <elapsedMs>
     const cleaned = data.trim().replace(/^DISP_SYNC\s*:\s*/i, 'DISP_SYNC ');
     const parts = cleaned.split(/\s+/);
     const cmd = parts[0].toUpperCase();
     if (cmd === 'DISP_SYNC_START') {
-      // try to read elapsed from the next token if present
       const elapsed = parts.length > 1 ? Number(parts[1]) : 0;
       this.startDisplayTimer(elapsed);
     } else if (cmd === 'DISP_SYNC_STOP') {
-      // may include result/elapsed, treat as finish
-      const elapsed = parts.length > 2 ? Number(parts[2]) : (parts.length > 1 ? Number(parts[1]) : null);
+      const elapsed = parts.length > 2 ? Number(parts[2]) : parts.length > 1 ? Number(parts[1]) : null;
       if (elapsed !== null && !Number.isNaN(elapsed)) {
         this.displayElapsedMs = elapsed;
       }
@@ -320,13 +414,28 @@ class ClimbTimerApp {
     }
   }
 
-  startDisplayTimer(startElapsedMs = 0) {
+  startDisplayTimer(startElapsedMs = 0, stateIdx = null) {
     this.clearDisplayInterval();
     this.displayElapsedMs = Number(startElapsedMs) || 0;
     this.displayState = 'running';
-    // Calculate total timer duration based on mode and config
-    const isTransition = this.displayElapsedMs < this.config.trans * 1000;
-    this.timerTotal = isTransition ? this.config.trans * 1000 : (this.config.trans + this.config.climb) * 1000;
+
+    if (stateIdx !== null) this.systemState = stateIdx;
+
+    // Calculate total timer duration based on mode and state
+    if (this.systemState === 4) {
+      // TRANSITION
+      this.timerTotal = this.config.trans * 1000;
+    } else if (this.systemState === 6) {
+      // RACING
+      this.timerTotal = this.config.climb * 1000;
+    } else if (this.systemState === 3) {
+      // BEEPING
+      this.timerTotal = 5000; // Standard speed countdown approx
+    } else {
+      const isTransition = this.displayElapsedMs < this.config.trans * 1000;
+      this.timerTotal = isTransition ? this.config.trans * 1000 : (this.config.trans + this.config.climb) * 1000;
+    }
+
     this.updateTimerTextFromMs();
     this.updateTimerPreview();
     this.displayInterval = setInterval(() => {
@@ -404,37 +513,127 @@ class ClimbTimerApp {
   }
 
   parseStatus(data) {
-    // STATUS ID=<id> MODE=<mode> RUN=<runmode>
+    // STATUS ID=<id> MODE=<mode> RUN=<runmode> ...
     const parts = data.split(' ');
     parts.forEach((part) => {
       const [keyRaw, value] = part.split('=');
+      if (!keyRaw || value === undefined) return;
       const key = keyRaw.toUpperCase();
-      if (key === 'MODE') {
-        this.currentMode = parseInt(value);
-        this.updateModeDisplay();
-      } else if (key === 'RUN') {
-        this.currentRunMode = parseInt(value);
-        this.updateRunModeDisplay();
+      const val = parseInt(value, 10);
+
+      switch (key) {
+        case 'MODE':
+          this.config.mode = val;
+          this.currentMode = val;
+          this.updateModeDisplay();
+          break;
+        case 'RUN':
+          this.config.runmode = val;
+          this.currentRunMode = val;
+          this.updateRunModeDisplay();
+          break;
+        case 'CLIMB':
+          this.config.climb = val;
+          break;
+        case 'TRANS':
+          this.config.trans = val;
+          break;
+        case 'VOL':
+          this.config.vol = val;
+          break;
+        case 'TENTHS':
+          this.config.tenths = val === 1;
+          this.updateTimerTextFromMs();
+          break;
+        case 'SYMBOLS':
+          this.config.symbols = val === 1;
+          this.updateSymbolUI();
+          break;
+        case 'BEEP':
+          this.config.beepStyle = val;
+          break;
+        case 'WAVE':
+          this.config.waveform = val;
+          break;
+        case 'MAINT':
+          this.config.maintenance = val === 1;
+          break;
+        case 'LANE':
+          this.config.assignedLane = val;
+          break;
       }
     });
+    this.syncFormWithConfig();
   }
 
-  parseCfgUpdate(data) {    
-    const [key, value] = data.split(' ');
-    // convert key to lowercase to match config keys
-    if (key === 'mode') {
-      this.currentMode = parseInt(value);
-      this.updateModeDisplay();
-    } else if (key === 'runmode') {
-      this.currentRunMode = parseInt(value);
-      this.updateRunModeDisplay();
-    }    
+  parseCfgUpdate(data) {
+    const parts = data.split(' ');
+    if (parts.length < 2) return;
+    const key = parts[0].toLowerCase();
+    const value = parts[1];
+    const val = parseInt(value, 10);
+
+    switch (key) {
+      case 'mode':
+        this.config.mode = val;
+        this.currentMode = val;
+        this.updateModeDisplay();
+        break;
+      case 'runmode':
+        this.config.runmode = val;
+        this.currentRunMode = val;
+        this.updateRunModeDisplay();
+        break;
+      case 'climb':
+        this.config.climb = val;
+        break;
+      case 'trans':
+        this.config.trans = val;
+        break;
+      case 'vol':
+        this.config.vol = val;
+        break;
+      case 'tenths':
+        this.config.tenths = val === 1;
+        this.updateTimerTextFromMs();
+        break;
+      case 'symbols':
+        this.config.symbols = val === 1;
+        this.updateSymbolUI();
+        break;
+      case 'beep':
+        this.config.beepStyle = val;
+        break;
+      case 'wave':
+        this.config.waveform = val;
+        break;
+      case 'maint':
+        this.config.maintenance = val === 1;
+        break;
+      case 'lane':
+        this.config.assignedLane = val;
+        break;
+    }
+    this.syncFormWithConfig();
   }
 
   parseValue(data) {
     // VAL <value>
     const value = data.split(' ')[1];
     this.terminal.print('Value: ' + value, 'info');
+  }
+
+  async sendConfig(key, value) {
+    if (!this.ble.isConnected()) {
+      return;
+    }
+    const command = `CFG ${key} ${value}\n`;
+    try {
+      await this.ble.send(command);
+      this.terminal.print('Sent: ' + command.trim(), 'sent');
+    } catch (error) {
+      this.terminal.print('Send CFG failed: ' + error.message, 'error');
+    }
   }
 
   async sendEvent(eventId, meta = 0) {
@@ -511,12 +710,16 @@ class ClimbTimerApp {
         { key: 'mode', value: this.config.mode },
         { key: 'runmode', value: this.config.runmode },
         { key: 'vol', value: this.config.vol },
+        { key: 'tenths', value: this.config.tenths ? 1 : 0 },
+        { key: 'symbols', value: this.config.symbols ? 1 : 0 },
+        { key: 'beep', value: this.config.beepStyle },
+        { key: 'wave', value: this.config.waveform },
+        { key: 'maint', value: this.config.maintenance ? 1 : 0 },
+        { key: 'lane', value: this.config.assignedLane },
       ];
 
       for (const cfg of commands) {
-        const command = `CFG ${cfg.key} ${cfg.value}\n`;
-        await this.ble.send(command);
-        this.terminal.print('Sent: ' + command.trim(), 'sent');
+        await this.sendConfig(cfg.key, cfg.value);
       }
 
       this.terminal.print('Configuration applied', 'success');
@@ -555,6 +758,10 @@ class ClimbTimerApp {
   }
 
   getDisplayStateLabel() {
+    if (this.systemState !== undefined && ClimbTimerApp.STATE_NAMES[this.systemState]) {
+      return ClimbTimerApp.STATE_NAMES[this.systemState];
+    }
+
     if (this.displayState === 'finished') {
       return 'FINISHED';
     }
@@ -675,6 +882,7 @@ class ClimbTimerApp {
       root.style.setProperty('--text', '#ffffff');
       root.style.setProperty('--accent', '#ff6b35');
     }
+    this.sendConfig('theme', this.config.theme);
   }
 
   updateModeUI(mode) {
@@ -695,5 +903,5 @@ class ClimbTimerApp {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  new ClimbTimerApp();
+  window.app = new ClimbTimerApp();
 });
