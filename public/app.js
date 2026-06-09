@@ -67,8 +67,6 @@ class ClimbTimerApp {
     // Configuration buttons
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
-    document.getElementById('applyConfig')?.addEventListener('click', () => this.applyConfig());
-    document.getElementById('resetConfig')?.addEventListener('click', () => this.resetConfigForm());
 
     // Mode selection
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
@@ -114,7 +112,7 @@ class ClimbTimerApp {
     });
     document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
       this.config.theme = parseInt(e.target.value, 10);
-      this.applyTheme();
+      this.sendConfig('theme', this.config.theme);    
     });
     document.getElementById('cfg-maintenance')?.addEventListener('change', (e) => {
       this.config.maintenance = e.target.checked;
@@ -598,6 +596,9 @@ class ClimbTimerApp {
         this.config.tenths = val === 1;
         this.updateTimerTextFromMs();
         break;
+      case 'theme':
+        this.config.theme = val;
+        this.applyTheme();
       case 'symbols':
         this.config.symbols = val === 1;
         this.updateSymbolUI();
