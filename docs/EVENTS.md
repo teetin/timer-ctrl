@@ -1,39 +1,95 @@
-# T2Timer Event & Protocol Documentation
+# T2Timer System Events
 
-This document serves as the comprehensive reference for all event-driven communication within the T2Timer system, covering CAN (Internal Node Bus), BLE (Mobile/Web Apps), and HTTP (Web Dashboard).
+The T2Timer ecosystem is built on a unified, event-driven architecture. Events represent physical sensor triggers, state changes, and commands that synchronize all nodes (Brain, Display, Audio, etc.).
 
-## 1. System Events (`climb_event_id_t`)
+## Transport Layers
 
-These IDs are used across all transport layers to identify the logical action.
-
-| ID | Name | Payload (Metadata) | Description |
-| :--- | :--- | :--- | :--- |
-| `0` | `ATHLETE_SCANNED` | `uint32_t` UID | A new athlete tag/ID was detected. |
-| `1` | `SEQ_PREP` | 0 | Prepare for start sequence (internal). |
-| `2` | `SEQ_PIP` | 0 | Single beep pulse during countdown. |
-| `3` | `RACE_START` | 0 | Official clock start trigger. |
-| `4` | `GATE_ENTER` | 0 | Sensor beam broken. |
-| `5` | `GATE_EXIT` | 0 | Sensor beam cleared. |
-| `6` | `STARTER_BUTTON` | Node ID | Physical starter button pressed. |
-| `7` | `RACE_FINISH` | 0 | Force race completion (Referee action). |
-| `8` | `RACE_ABORT` | 0 | Abort current race and return to IDLE. |
-| `9` | `UI_RESET` | 0 | System-wide refresh (reloads config). |
-| `11` | `AUDIO_CMD` | `[Freq 16] << 16 \| [Dur 16]` | Play a tone on connected audio nodes. |
-| `12` | `DISP_SYNC_START` | `[State 8] \| [ElapsedMS 24] << 8` | Start/Resume a timer on display nodes. |
-| `13` | `DISP_SYNC_STOP` | `[State 8] \| [Result 4] << 8 \| [Elapsed 20] << 12` | Freeze/Stop a timer with final result. |
-| `14` | `DISP_SYNC_RESET` | 0 | Reset display to default state. |
-| `15` | `DISP_SYNC_MODE` | `climb_mode_t` | Change display layout (Speed/Boulder/Lead). |
-| `16` | `DISP_SYNC_PROG` | `uint32_t` Progress | Update transition progress bar. |
-| `20` | `PAD_TRIGGERED` | Node ID | Start/End pad sensor activated. |
-| `21` | `PAD_RELEASED` | Node ID | Start/End pad sensor released. |
-| `22` | `DISCOVERY_POLL` | 0 | Start node discovery sequence. |
-| `23` | `IDENTIFY_NODE` | Node ID | Command a node to flash its LEDs for identification. |
-| `24` | `VISUAL_CMD` | `[Lane 8] \| [Pat 8] << 8 \| [Color565 16] << 16` | Set specific LED pattern and color. |
-| `25` | `STATE_CHANGE` | `[Lane 8] \| [State 8] << 8` | Async notification of state machine transitions. |
+Events are mirrored across three primary transport layers:
+1. **CAN Bus**: Binary protocol for inter-node communication.
+2. **BLE Serial (NUS)**: G-code style text protocol for mobile apps.
+3. **HTTP/SSE**: Server-Sent Events stream for web dashboards.
 
 ---
 
-## 2. CAN Bus Protocol (TWAI)
+## Event Format (G-Code Style)
+
+Standardized format for BLE and HTTP/SSE:
+`E<code> <ts:hex> [args...]`
+
+- `<code>`: Numeric Event ID (Decimal).
+- `<ts:hex>`: 64-bit microsecond timestamp (Hex, no leading zeros).
+- `[args...]`: Keyed parameters (G-code style) or a single metadata value.
+
+### Common Keys
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `M` | Hex | Generic 32-bit Metadata / Mode |
+| `L` | Dec | Lane (0=All, 1=A, 2=B) |
+| `P` | Dec | Visual Pattern ID |
+| `C` | Hex | Color (RGB565) |
+| `S` | Dec | Speed (0-255) |
+| `R` | Dec | Role Mask |
+| `F` | Dec | Audio Frequency (Hz) |
+| `D` | Dec | Audio Duration (ms) |
+| `A` | Hex | Athlete UID |
+| `N` | Dec | Node ID |
+
+---
+
+## Event Catalog
+
+| ID | Name | Description | Arguments / Meta |
+| :--- | :--- | :--- | :--- |
+| `0` | `ATHLETE_SCANNED` | New RFID/QR tag detected | `A<uid:hex>` |
+| `1` | `SEQ_PREP` | Prepare for start sequence | - |
+| `2` | `SEQ_PIP` | Single beep pulse | - |
+| `3` | `RACE_START` | Official clock start | - |
+| `6` | `STARTER_BUTTON` | Physical button press | `N<node_id>` |
+| `7` | `RACE_FINISH` | Race completion (force) | - |
+| `8` | `RACE_ABORT` | Abort/Reset current race | - |
+| `9` | `UI_RESET` | Sync settings/Splash | - |
+| `11` | `AUDIO_CMD` | Play specific tone | `F<freq> D<dur>` |
+| `12` | `DISP_SYNC_START` | Start display timer | `M[state(8)\|elapsed(24)]` |
+| `13` | `DISP_SYNC_STOP` | Freeze display result | `M[state(8)\|res(4)\|elapsed(20)]` |
+| `20` | `PAD_TRIGGERED` | Sensor activated | `N<node_id>` |
+| `21` | `PAD_RELEASED` | Sensor released | `N<node_id>` |
+| `24` | `VISUAL_CMD` | Set LED/Display pattern | `L<lane> P<pat> C<hex> S<spd> R<role>` |
+| `25` | `STATE_CHANGE` | Global/Lane state updated | `L<lane> S<state>` |
+
+---
+
+## Command Reference
+
+### Configuration (`C`)
+Update one or more settings in a single line.
+- **Format:** `C <key><val> [<key><val> ...]`
+- **Response:** `C <key><val> [<key><val> ...]`
+- **Keys:**
+  - `M`: Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock)
+  - `C`: Climb Time (Seconds)
+  - `T`: Transition Time (Seconds)
+  - `V`: Volume (0-100)
+  - `Q`: Run Mode (0:Quals, 1:Finals)
+  - `X`: Show Tenths (0/1)
+  - `Y`: Use Symbols (0/1)
+  - `B`: Beeper Style (0:Prague, 1:Innsbruck, 2:Japan)
+  - `W`: Waveform (0:Sine, 1:Square)
+  - `K`: Maint Mode (0/1)
+  - `A`: Assigned Lane (0:Both, 1:A, 2:B)
+- **Example:** `C M1 C360 T15` -> `C M1 C360 T15`
+
+### Getters (`G`)
+Retrieve one or more configuration values. Providing no keys returns the full config.
+- **Format:** `G [<key> ...]`
+- **Response:** `G <key><val> [<key><val> ...]`
+- **Example:** `G M V` -> `G M1 V100`
+
+### System Commands
+- `S`: Get Status. Response: `S I<id> M<mode> Q<runmode>`
+- `R`: Reset State Machine. Response: `R OK`
+- `!`: Reboot Hardware. Response: `! OK`
+
+## CAN Bus Protocol (TWAI)
 
 Used for communication between the Brain and Satellite nodes (Pads, Displays, Audio).
 
@@ -49,64 +105,3 @@ Used for communication between the Brain and Satellite nodes (Pads, Displays, Au
 | `0x300` | `CONFIG_SYNC` | `[Cmd 8] [Type 8] [Seg 8] [Data 40]` |
 | `0x320` | `PING_POLL` | *(Empty)* - Brain scans for nodes. |
 | `0x321` | `PING_RESP` | `[NodeID 16] [CapMask 8] [Uptime 8]` |
-
----
-
-## 3. BLE Protocol (Nordic UART Service)
-
-The BLE interface provides a serial console for UI clients.
-
-### Command Format (RX)
-UI -> Brain: `CMD <arg1> [arg2]` followed by `\n`.
-
-- `EVT <id> [meta]` : Trigger a system event.
-- `CFG <key> <val>` : Update a configuration parameter.
-- `GET <key>` : Retrieve a configuration value.
-- `STATUS` : Get system summary.
-- `RESET` : Abort race.
-- `REBOOT` : Hardware restart.
-
-### Notification Format (TX)
-Brain -> UI: `EVT:<id> ts=<us> meta=<meta>\n`
-
-Example: `EVT:3 ts=12345678 meta=0` (Race Start)
-
-### `meta` interpretation and Node ID encoding
-- **Node ID / `meta`**: Many physical input events (for example `PAD_TRIGGERED` / `PAD_RELEASED` and `STARTER_BUTTON`) carry a compact 16/32-bit numeric `meta` value that identifies the originating unit and sensor. The unit firmware uses a small, human-friendly decimal scheme in the UI examples (e.g. `1010`, `1011`, `1020`, `1021`) where the value is a unit-specific identifier for a lane and pad. UI clients SHOULD treat `meta` as an opaque numeric source identifier unless they know the local deployment mapping.
-- **Dashboard examples**: The dashboard uses these example mappings: `1010` = Lane A start pad, `1011` = Lane A finish pad, `1020` = Lane B start pad, `1021` = Lane B finish pad. These are illustrative only — the authoritative mapping for your deployment is discovered via the CAN discovery/ping mechanisms.
-
----
-
-## 4. HTTP API
-
-The Web Dashboard uses REST for control and SSE for live updates.
-
-### Control (REST)
-- `GET /event?evt=N&meta=M` : Trigger system event.
-- `GET /config?key=val` : Set configuration.
-- `GET /status` : JSON system status.
-
-### Live Updates (SSE)
-- `GET /events/stream`
-- **Format:** `data: {"id":N, "ts":T, "meta":M}`
-
----
-
-## 5. Logic State Definitions
-
-When `STATE_CHANGE` (Event 25) is emitted, the metadata contains the state index:
-
-| Index | Name | Description |
-| :--- | :--- | :--- |
-| `0` | `IDLE` | System waiting for climbers or referee. |
-| `1` | `PRECONDITION` | Speed: Climber on pad. |
-| `2` | `STARTER_WAIT` | Speed: Referee acknowledged, waiting for beeps. |
-| `3` | `BEEPING` | Countdown beeps active. |
-| `4` | `TRANSITION` | Boulder/Lead: Rest period. |
-| `5` | `READY` | Speed: Post-beep ready state. |
-| `6` | `RACING` | Clock is running. |
-| `7` | `FINISHED` | Race complete. |
-| `8` | `FALSE_START` | Jumped start detected. |
-| `9` | `PAUSED` | Timer suspended by referee. |
-| `10` | `FALL` | Climber fell / manual abort. |
-| `11` | `SPLASH` | Showing device info on display. |
