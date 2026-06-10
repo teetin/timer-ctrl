@@ -1,136 +1,92 @@
-import { BLEDevice } from './ble.js';
+import { BLETransport, HTTPTransport } from './transports.js';
 import { Terminal } from './terminal.js';
 
 // ============================================================================
-// Climb Timer Control App
+// Climb Timer Control App (G-Code Protocol)
 // ============================================================================
 
 class ClimbTimerApp {
   constructor() {
-    this.ble = new BLEDevice();
+    this.transport = this.detectTransport();
     this.terminal = null;
-    this.currentMode = 0; // 0: Speed, 1: Boulder, 2: Lead, 3: Clock
-    this.currentRunMode = 0; // 0: Quals, 1: Finals
+    this.currentMode = 0;
+    this.currentRunMode = 0;
+
     this.config = {
-      climb: 60,
-      trans: 15,
-      mode: 0,
-      runmode: 0,
-      vol: 100,
-      beepStyle: 0,
-      waveform: 0,
-      symbols: false,
-      tenths: false,
-      console: false,
-      laneA: true,
-      laneB: true,
+      M: 0,   // Mode
+      C: 60,  // Climb Time
+      T: 15,  // Transition Time
+      V: 100, // Volume
+      Q: 0,   // Run Mode
+      X: 0,   // Tenths
+      Y: 0,   // Symbols
+      B: 0,   // Beeper Style
+      W: 0,   // Waveform
+      K: 0,   // Maint Mode
+      A: 0,   // Assigned Lane
+      D: 1,   // Radio Mode
       theme: 0,
-      maintenance: false,
-      assignedLane: 0,
+      console: false,
     };
-    // Display timer state (driven by incoming EVT/DISP messages)
-    this.systemState = 0; // climb_event_id_t from EVENTS.md
-    this.displayState = 'idle'; // 'idle' | 'running' | 'paused' | 'finished'
-    this.displayElapsedMs = 0; // milliseconds
+
+    this.systemState = 0;
+    this.displayState = 'idle';
+    this.displayElapsedMs = 0;
     this.displayInterval = null;
-    this.bleLineBuffer = '';
-    this.timerTotal = 0; // total duration in ms for countdown calculation
+    this.lineBuffer = '';
+    this.timerTotal = 0;
+
     this.initializeUI();
   }
 
+  detectTransport() {
+    const isLocal = window.location.hostname !== 'localhost' &&
+                    window.location.hostname !== '127.0.0.1' &&
+                    window.location.hostname !== '';
+
+    if (isLocal || window.location.search.includes('transport=http')) {
+      console.log('Using HTTP Transport');
+      return new HTTPTransport();
+    }
+    console.log('Using BLE Transport');
+    return new BLETransport();
+  }
+
   initializeUI() {
-    // Terminal
     const terminalEl = document.getElementById('terminal');
     if (terminalEl) {
       this.terminal = new Terminal(terminalEl);
-    } else {
-      console.error('terminal element not found');
-      return;
     }
 
-    // Connection buttons - safe attachment
     document.getElementById('connectBtn')?.addEventListener('click', () => this.connect());
     document.getElementById('disconnectBtn')?.addEventListener('click', () => this.disconnect());
 
-    // Main control buttons - safe attachment
     document.getElementById('btn-start')?.addEventListener('click', () => this.sendEvent(6));
     document.getElementById('btn-reset')?.addEventListener('click', () => this.sendEvent(9));
     document.getElementById('btn-abort')?.addEventListener('click', () => this.sendEvent(8));
     document.getElementById('btn-finish')?.addEventListener('click', () => this.sendEvent(7));
 
-    // Judging override buttons
-    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.sendJudgement(1));
-    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.sendJudgement(2));
-    document.getElementById('btn-fall-a')?.addEventListener('click', () => this.sendEvent(8, 1));
-    document.getElementById('btn-fall-b')?.addEventListener('click', () => this.sendEvent(8, 2));
+    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.sendEvent(7, 'L1'));
+    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.sendEvent(7, 'L2'));
+    document.getElementById('btn-fall-a')?.addEventListener('click', () => this.sendEvent(25, 'L1 S10'));
+    document.getElementById('btn-fall-b')?.addEventListener('click', () => this.sendEvent(25, 'L2 S10'));
 
-    // Configuration buttons
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
+    document.getElementById('applyConfig')?.addEventListener('click', () => this.applyConfig());
+    document.getElementById('resetConfig')?.addEventListener('click', () => this.resetConfig());
 
-    // Mode selection
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
-      this.sendConfig('mode', mode);
+      this.sendConfig('M', mode);
       this.updateModeUI(mode);
-      this.updateTimerPreviewFromForm();
-      document.getElementById('runModeConfig')?.classList.toggle('hidden', mode === 0);
     });
 
-    // Config form inputs
-    document.getElementById('cfg-climb')?.addEventListener('change', (e) => {
-      this.sendConfig('climb', e.target.value);
-      this.updateTimerPreviewFromForm();
-    });
-    document.getElementById('cfg-trans')?.addEventListener('change', (e) => {
-      this.sendConfig('trans', e.target.value);
-      this.updateTimerPreviewFromForm();
-    });
-    document.getElementById('cfg-runmode')?.addEventListener('change', (e) => {
-      this.sendConfig('runmode', e.target.value);
-      this.updateTimerPreviewFromForm();
-    });
-    document.getElementById('cfg-vol')?.addEventListener('input', (e) => {
-      document.getElementById('volDisplay').textContent = e.target.value;
-    });
-    document.getElementById('cfg-vol')?.addEventListener('change', (e) => {
-      this.sendConfig('vol', e.target.value);
-    });
-    document.getElementById('cfg-symbols')?.addEventListener('change', (e) => {
-      this.config.symbols = e.target.checked;
-      this.sendConfig('symbols', e.target.checked ? 1 : 0);
-      this.updateSymbolUI();
-    });
-    document.getElementById('cfg-tenths')?.addEventListener('change', (e) => {
-      this.config.tenths = e.target.checked;
-      this.sendConfig('tenths', e.target.checked ? 1 : 0);
-      this.updateTimerTextFromMs();
-    });
     document.getElementById('cfg-console')?.addEventListener('change', (e) => {
       this.config.console = e.target.checked;
       document.getElementById('terminalPanel')?.classList.toggle('hidden', !this.config.console);
     });
-    document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
-      this.config.theme = parseInt(e.target.value, 10);
-      this.sendConfig('theme', this.config.theme);    
-    });
-    document.getElementById('cfg-maintenance')?.addEventListener('change', (e) => {
-      this.config.maintenance = e.target.checked;
-      this.sendConfig('maint', e.target.checked ? 1 : 0);
-    });
-    document.getElementById('cfg-assigned-lane')?.addEventListener('change', (e) => {
-      const lane = parseInt(e.target.value, 10);
-      this.config.assignedLane = lane;
-      this.sendConfig('lane', lane);
-    });
-    document.getElementById('cfg-beep-style')?.addEventListener('change', (e) => {
-      this.sendConfig('beep', e.target.value);
-    });
-    document.getElementById('cfg-waveform')?.addEventListener('change', (e) => {
-      this.sendConfig('wave', e.target.value);
-    });
 
-    // Terminal
     document.getElementById('toggleTerminal')?.addEventListener('click', () => this.toggleTerminal());
     document.getElementById('closeTerminal')?.addEventListener('click', () => this.closeTerminal());
     document.getElementById('terminalClear')?.addEventListener('click', () => this.terminal?.clear());
@@ -140,159 +96,98 @@ class ClimbTimerApp {
       if (e.key === 'Enter') this.sendTerminalCommand();
     });
 
-    if (this.terminal) {
-      this.terminal.print('Climb Timer Control initialized', 'info');
-    }
     this.syncFormWithConfig();
     this.updateModeDisplay();
     this.updateRunModeDisplay();
     this.updateSymbolUI();
     this.updateTimerPreview();
     this.applyTheme();
-  }
 
-  syncFormWithConfig() {
-    this.updateTimerPreview();
-    document.getElementById('cfg-climb').value = this.config.climb;
-    document.getElementById('cfg-trans').value = this.config.trans;
-    document.getElementById('cfg-mode').value = this.config.mode;
-    document.getElementById('cfg-runmode').value = this.config.runmode;
-    document.getElementById('cfg-vol').value = this.config.vol;
-    document.getElementById('volDisplay').textContent = this.config.vol;
-    document.getElementById('cfg-symbols').checked = this.config.symbols;
-    document.getElementById('cfg-tenths').checked = this.config.tenths;
-    document.getElementById('cfg-console').checked = this.config.console;
-    document.getElementById('cfg-lane-a').checked = this.config.laneA;
-    document.getElementById('cfg-lane-b').checked = this.config.laneB;
-    const themeEl = document.getElementById('cfg-theme');
-    if (themeEl) themeEl.value = this.config.theme;
-    const mainEl = document.getElementById('cfg-maintenance');
-    if (mainEl) mainEl.checked = this.config.maintenance;
-    const laneEl = document.getElementById('cfg-assigned-lane');
-    if (laneEl) laneEl.value = this.config.assignedLane;
-    this.updateModeUI(this.config.mode);
+    if (this.transport instanceof HTTPTransport) {
+        this.connect();
+    }
   }
 
   async connect() {
     try {
-      await this.ble.connect();
-      this.terminal.print('Connected to: ' + this.ble.getDeviceName(), 'success');
+      await this.transport.connect();
+      this.terminal?.print('Connected to: ' + this.transport.getDeviceName(), 'success');
 
-      // Set up receive handler BEFORE sending any commands
-      this.ble.onReceive((data) => this.handleBLEResponse(data));
-      this.ble.onDisconnected(() => this.handleDisconnection());
+      this.transport.onReceive((data) => this.handleData(data));
+      this.transport.onDisconnected(() => this.handleDisconnection());
 
-      // Update UI
-      document.getElementById('statusIndicator').classList.remove('disconnected');
-      document.getElementById('statusIndicator').classList.add('connected');
+      const indicator = document.getElementById('statusIndicator');
+      if (indicator) indicator.className = 'status-dot connected';
       document.getElementById('statusText').textContent = 'Connected';
       document.getElementById('connectBtn').style.display = 'none';
       document.getElementById('deviceInfo').classList.remove('hidden');
-      document.getElementById('deviceName').textContent = this.ble.getDeviceName();
+      document.getElementById('deviceName').textContent = this.transport.getDeviceName();
 
-      // Enable control buttons
       this.setControlsEnabled(true);
       document.getElementById('terminalInput').disabled = false;
       document.getElementById('terminalSend').disabled = false;
 
-      // Request status AFTER handlers are set up
-      this.sendTerminalCommand('STATUS');
+      this.sendTerminalCommand('G');
+      this.sendTerminalCommand('S');
     } catch (error) {
-      this.terminal.print('Connection failed: ' + error.message, 'error');
+      this.terminal?.print('Connection failed: ' + error.message, 'error');
     }
   }
 
   async disconnect() {
-    try {
-      await this.ble.disconnect();
-      this.handleDisconnection();
-    } catch (error) {
-      this.terminal.print('Disconnect failed: ' + error.message, 'error');
-    }
+    await this.transport.disconnect();
   }
 
   handleDisconnection() {
-    this.terminal.print('Disconnected from device', 'info');
-    document.getElementById('statusIndicator').classList.remove('connected');
-    document.getElementById('statusIndicator').classList.add('disconnected');
+    this.terminal?.print('Disconnected', 'info');
+    const indicator = document.getElementById('statusIndicator');
+    if (indicator) indicator.className = 'status-dot disconnected';
     document.getElementById('statusText').textContent = 'Disconnected';
     document.getElementById('connectBtn').style.display = 'block';
     document.getElementById('deviceInfo').classList.add('hidden');
-
-    // Disable control buttons
     this.setControlsEnabled(false);
-    document.getElementById('terminalInput').disabled = true;
-    document.getElementById('terminalSend').disabled = true;
   }
 
-  handleBLEResponse(data) {
-    const raw = data.toString();
-    const chunk = this.bleLineBuffer + raw;
+  handleData(data) {
+    const chunk = this.lineBuffer + data;
     const lines = chunk.split(/\r?\n/);
-    this.bleLineBuffer = lines.pop() || '';
-    lines.map((line) => line.trim()).filter(Boolean).forEach((line) => this.handleBLELine(line));
+    this.lineBuffer = lines.pop() || '';
+    lines.forEach(line => this.handleLine(line.trim()));
   }
 
-  handleBLELine(line) {
-    this.terminal.print('Received: ' + line, 'received');
-    const message = line.trim();
-    const upper = message.toUpperCase();
+  handleLine(line) {
+    if (!line) return;
+    this.terminal?.print('Recv: ' + line, 'received');
 
-    if (!message) return;
+    const cmd = line[0].toUpperCase();
+    const body = line.substring(1).trim();
 
-    if (upper.startsWith('OK')) {
-      if (upper.startsWith('OK CFG')) {
-        this.terminal.print('✓ Configuration updated', 'success');
-        this.parseCfgUpdate(message.substring(7));
-      } else {
-        this.terminal.print('✓ Command accepted', 'success');
-      }
-    } else if (upper.startsWith('ERR')) {
-      this.terminal.print('✗ Error: ' + message, 'error');
-    } else if (upper.startsWith('STATUS')) {
-      this.parseStatus(message);
-    } else if (upper.startsWith('VAL')) {
-      this.parseValue(message);
-    } else if (upper.startsWith('EVT')) {
-      this.parseEvent(message);
-    } else if (upper.startsWith('DISP_SYNC')) {
-      this.parseDispSync(message);
-    } else {
-      this.terminal.print('Unhandled message: ' + message, 'info');
+    switch (cmd) {
+      case 'E': this.parseEvent(body); break;
+      case 'C': this.parseConfig(body, 'C'); break;
+      case 'G': this.parseConfig(body, 'G'); break;
+      case 'S': this.parseStatus(body); break;
+      case 'R':
+      case '!':
+        if (body === 'OK') this.terminal?.print('✓ ' + cmd + ' Success', 'success');
+        break;
+      default:
+        this.terminal?.print('Unknown prefix: ' + cmd, 'info');
     }
   }
 
   parseEvent(data) {
-    // Handle both formats:
-    // 1. EVT <id> [meta]
-    // 2. EVT:<id> ts=<ts> meta=<meta>
-    let id,
-      metaVal = 0;
+    const parts = data.split(/\s+/);
+    if (parts.length < 2) return;
 
-    if (data.includes('ts=') || data.includes('meta=')) {
-      const idMatch = data.match(/EVT:(\d+)/i);
-      id = idMatch ? parseInt(idMatch[1], 10) : NaN;
-      const metaMatch = data.match(/meta=(\d+)/i);
-      metaVal = metaMatch ? parseInt(metaMatch[1], 10) : 0;
-    } else {
-      const cleaned = data.trim().replace(/^EVT\s*:\s*/i, 'EVT ');
-      const parts = cleaned.split(/\s+/);
-      id = parseInt(parts[1], 10);
-      metaVal = parts.length > 2 ? parseInt(parts[2], 10) : 0;
-    }
+    const code = parseInt(parts[0], 10);
+    const ts = parts[1];
+    const args = this.parseArgs(parts.slice(2), 'E');
 
-    if (Number.isNaN(id)) {
-      this.terminal.print('Invalid EVT payload: ' + data, 'error');
-      return;
-    }
-
-    switch (id) {
+    switch (code) {
       case 3: // RACE_START
         this.handleStateChange(0, 6); // RACING
         this.startDisplayTimer(0, 6);
-        break;
-      case 6: // STARTER_BUTTON
-        this.terminal.print('Starter Button Pressed', 'info');
         break;
       case 7: // RACE_FINISH
         this.handleStateChange(0, 7); // FINISHED
@@ -302,141 +197,138 @@ class ClimbTimerApp {
         break;
       case 9: // UI_RESET
         this.resetDisplayTimer();
+        this.sendTerminalCommand('G');
         break;
-      case 12: // DISP_SYNC_START
-        {
-          const state = metaVal & 0xff;
-          const elapsedMs = (metaVal >> 8) & 0xffffff;
+      case 12: // DISP_SYNC_START M[state(8)|elapsed(24)]
+        if (args.M !== undefined) {
+          const val = parseInt(args.M, 16);
+          const state = (val >> 24) & 0xFF;
+          const elapsed = val & 0xFFFFFF;
           this.handleStateChange(0, state);
-          this.startDisplayTimer(elapsedMs, state);
+          this.startDisplayTimer(elapsed, state);
         }
         break;
-      case 13: // DISP_SYNC_STOP
-        {
-          const state = metaVal & 0xff;
-          const result = (metaVal >> 8) & 0xf;
-          const elapsedMs = (metaVal >> 12) & 0xfffff;
-          this.displayElapsedMs = elapsedMs;
+      case 13: // DISP_SYNC_STOP M[state(8)|res(4)|elapsed(20)]
+        if (args.M !== undefined) {
+          const val = parseInt(args.M, 16);
+          const state = (val >> 24) & 0xFF;
+          const res = (val >> 20) & 0xF;
+          const elapsed = val & 0xFFFFF;
+          this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
-          this.terminal.print(
-            `Sync Stop: Result=${result} Time=${(elapsedMs / 1000).toFixed(3)}s`,
-            'success'
-          );
+          this.finishDisplayTimer();
         }
         break;
-      case 15: // DISP_SYNC_MODE
-        this.currentMode = metaVal;
-        this.updateModeDisplay();
+      case 25: // STATE_CHANGE L<lane> S<state>
+        this.handleStateChange(args.L || 0, args.S || 0);
         break;
-      case 16: // DISP_SYNC_PROG
-        const stateEl = document.getElementById('statePreview');
-        if (stateEl) {
-          stateEl.textContent = `PROG: ${metaVal}%`;
-          setTimeout(() => this.updateTimerPreview(), 1500);
-        }
-        break;
-      case 20: // PAD_TRIGGERED
-        this.terminal.print(`Pad Triggered: ${metaVal}`, 'info');
-        break;
-      case 21: // PAD_RELEASED
-        this.terminal.print(`Pad Released: ${metaVal}`, 'info');
-        break;
-      case 25: // STATE_CHANGE
-        {
-          const lane = metaVal & 0xff;
-          const stateIdx = (metaVal >> 8) & 0xff;
-          this.handleStateChange(lane, stateIdx);
-        }
-        break;
-      default:
-        this.terminal.print(`Event ${id} meta=${metaVal}`, 'info');
     }
   }
 
+  parseConfig(data, context) {
+    const args = this.parseArgs(data.split(/\s+/), context);
+    Object.keys(args).forEach(key => {
+        if (this.config.hasOwnProperty(key)) {
+            // For config, only M and A should potentially be hex if they ever appear there.
+            // But based on doc, M (Mode) in config is ID (Decimal).
+            // Let's stick to what parseArgs returns now.
+            this.config[key] = args[key];
+        }
+    });
+
+    if (args.M !== undefined) {
+        this.currentMode = this.config.M;
+        this.updateModeDisplay();
+    }
+    if (args.Q !== undefined) {
+        this.currentRunMode = this.config.Q;
+        this.updateRunModeDisplay();
+    }
+
+    this.syncFormWithConfig();
+    this.updateTimerPreview();
+    this.updateSymbolUI();
+    this.updateTimerTextFromMs();
+  }
+
+  parseStatus(data) {
+    const args = this.parseArgs(data.split(/\s+/), 'S');
+    if (args.M !== undefined) {
+        this.config.M = args.M;
+        this.currentMode = this.config.M;
+    }
+    if (args.Q !== undefined) {
+        this.config.Q = args.Q;
+        this.currentRunMode = this.config.Q;
+    }
+    this.updateModeDisplay();
+    this.updateRunModeDisplay();
+    this.syncFormWithConfig();
+  }
+
+  parseArgs(parts, context) {
+    const args = {};
+    parts.forEach(p => {
+        if (!p) return;
+        const key = p[0].toUpperCase();
+        const valStr = p.substring(1);
+
+        if (context === 'E') {
+            // Events: M (Metadata), A (Athlete), C (Color) are Hex.
+            if (['M', 'A', 'C'].includes(key)) {
+                args[key] = valStr; // Hex string
+            } else {
+                args[key] = parseInt(valStr, 10);
+            }
+        } else {
+            // Config (C/G/S): All are Decimal, including M (Mode), C (Climb Time), etc.
+            // EXCEPT if Athlete or Metadata were ever in config, but they aren't in the table.
+            args[key] = parseInt(valStr, 10);
+        }
+    });
+    return args;
+  }
+
   static STATE_NAMES = [
-    'IDLE',
-    'PRECONDITION',
-    'STARTER_WAIT',
-    'BEEPING',
-    'TRANSITION',
-    'READY',
-    'RACING',
-    'FINISHED',
-    'FALSE_START',
-    'PAUSED',
-    'FALL',
-    'SPLASH',
+    'IDLE', 'PRECONDITION', 'STARTER_WAIT', 'BEEPING', 'TRANSITION',
+    'READY', 'RACING', 'FINISHED', 'FALSE_START', 'PAUSED', 'FALL', 'SPLASH'
   ];
 
   handleStateChange(lane, stateIdx) {
     this.systemState = stateIdx;
-    const stateName = ClimbTimerApp.STATE_NAMES[stateIdx] || `UNKNOWN(${stateIdx})`;
-    this.terminal.print(`State Change [Lane ${lane}]: ${stateName}`, 'info');
+    const stateName = ClimbTimerApp.STATE_NAMES[stateIdx] || `ST(${stateIdx})`;
+    this.terminal?.print(`State [L${lane}]: ${stateName}`, 'info');
 
-    // Manage local timer based on state
-    if (stateIdx === 6 || stateIdx === 4 || stateIdx === 3) {
-      // RACING, TRANSITION, BEEPING
+    if ([3, 4, 6].includes(stateIdx)) {
       if (this.displayState !== 'running') {
         this.startDisplayTimer(0, stateIdx);
       } else {
-        // Update total if state changed while running
-        if (stateIdx === 4) this.timerTotal = this.config.trans * 1000;
-        else if (stateIdx === 6) this.timerTotal = this.config.climb * 1000;
+        this.updateTimerTotal(stateIdx);
       }
-    } else if (stateIdx === 7 || stateIdx === 8 || stateIdx === 10) {
-      // FINISHED, FALSE_START, FALL
+    } else if ([7, 8, 10].includes(stateIdx)) {
       this.finishDisplayTimer();
-    } else if (stateIdx === 0 || stateIdx === 11) {
-      // IDLE, SPLASH
+    } else if ([0, 11].includes(stateIdx)) {
       this.resetDisplayTimer();
     } else if (stateIdx === 9) {
-      // PAUSED
       this.pauseDisplayTimer();
     }
-
     this.updateTimerPreview();
   }
 
-  parseDispSync(data) {
-    const cleaned = data.trim().replace(/^DISP_SYNC\s*:\s*/i, 'DISP_SYNC ');
-    const parts = cleaned.split(/\s+/);
-    const cmd = parts[0].toUpperCase();
-    if (cmd === 'DISP_SYNC_START') {
-      const elapsed = parts.length > 1 ? Number(parts[1]) : 0;
-      this.startDisplayTimer(elapsed);
-    } else if (cmd === 'DISP_SYNC_STOP') {
-      const elapsed = parts.length > 2 ? Number(parts[2]) : parts.length > 1 ? Number(parts[1]) : null;
-      if (elapsed !== null && !Number.isNaN(elapsed)) {
-        this.displayElapsedMs = elapsed;
-      }
-      this.finishDisplayTimer();
-    }
+  updateTimerTotal(stateIdx) {
+    if (stateIdx === 4) this.timerTotal = this.config.T * 1000;
+    else if (stateIdx === 6) this.timerTotal = this.config.C * 1000;
+    else if (stateIdx === 3) this.timerTotal = 5000;
   }
 
-  startDisplayTimer(startElapsedMs = 0, stateIdx = null) {
+  startDisplayTimer(elapsed = 0, stateIdx = null) {
     this.clearDisplayInterval();
-    this.displayElapsedMs = Number(startElapsedMs) || 0;
+    this.displayElapsedMs = elapsed;
     this.displayState = 'running';
-
     if (stateIdx !== null) this.systemState = stateIdx;
-
-    // Calculate total timer duration based on mode and state
-    if (this.systemState === 4) {
-      // TRANSITION
-      this.timerTotal = this.config.trans * 1000;
-    } else if (this.systemState === 6) {
-      // RACING
-      this.timerTotal = this.config.climb * 1000;
-    } else if (this.systemState === 3) {
-      // BEEPING
-      this.timerTotal = 5000; // Standard speed countdown approx
-    } else {
-      const isTransition = this.displayElapsedMs < this.config.trans * 1000;
-      this.timerTotal = isTransition ? this.config.trans * 1000 : (this.config.trans + this.config.climb) * 1000;
-    }
+    this.updateTimerTotal(this.systemState);
 
     this.updateTimerTextFromMs();
-    this.updateTimerPreview();
     this.displayInterval = setInterval(() => {
       this.displayElapsedMs += 100;
       this.updateTimerTextFromMs();
@@ -446,456 +338,201 @@ class ClimbTimerApp {
   pauseDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'paused';
-    this.updateTimerPreview();
-  }
-
-  resumeDisplayTimer() {
-    if (this.displayState === 'paused') {
-      this.displayState = 'running';
-      this.displayInterval = setInterval(() => {
-        this.displayElapsedMs += 100;
-        this.updateTimerTextFromMs();
-      }, 100);
-    }
   }
 
   finishDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'finished';
     this.updateTimerTextFromMs();
-    this.updateTimerPreview();
   }
 
   resetDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'idle';
     this.displayElapsedMs = 0;
-    this.timerTotal = 0;
     this.updateTimerTextFromMs();
-    this.updateTimerPreview();
   }
 
   clearDisplayInterval() {
-    if (this.displayInterval) {
-      clearInterval(this.displayInterval);
-      this.displayInterval = null;
-    }
+    if (this.displayInterval) clearInterval(this.displayInterval);
+    this.displayInterval = null;
   }
 
   updateTimerTextFromMs() {
     const el = document.getElementById('timerValue');
     if (!el) return;
 
-    // For boulder/lead modes, show countdown; for speed, show elapsed
-    let displayMs = this.displayElapsedMs;
+    let ms = this.displayElapsedMs;
     if (this.currentMode === 1 || this.currentMode === 2) {
-      // Boulder or Lead: countdown remaining time
-      displayMs = Math.max(0, this.timerTotal - this.displayElapsedMs);
+      ms = Math.max(0, this.timerTotal - this.displayElapsedMs);
     }
 
-    const ms = Math.max(0, Math.floor(displayMs));
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
     const tenths = Math.floor((ms % 1000) / 100);
 
-    if (this.config.tenths) {
-      el.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+    if (this.config.X) {
+      el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${tenths}`;
     } else {
-      el.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    // If in a race (not idle), persist the state and update mode display for run mode
-    if (this.displayState !== 'idle' && this.displayState !== 'paused') {
-      this.updateTimerPreview();
+      el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
     }
   }
 
-  parseStatus(data) {
-    // STATUS ID=<id> MODE=<mode> RUN=<runmode> ...
-    const parts = data.split(' ');
-    parts.forEach((part) => {
-      const [keyRaw, value] = part.split('=');
-      if (!keyRaw || value === undefined) return;
-      const key = keyRaw.toUpperCase();
-      const val = parseInt(value, 10);
+  syncFormWithConfig() {
+    const mapping = {
+        'cfg-climb': 'C',
+        'cfg-trans': 'T',
+        'cfg-mode': 'M',
+        'cfg-runmode': 'Q',
+        'cfg-vol': 'V',
+        'cfg-symbols': 'Y',
+        'cfg-tenths': 'X',
+        'cfg-maintenance': 'K',
+        'cfg-assigned-lane': 'A',
+        'cfg-beep-style': 'B',
+        'cfg-waveform': 'W'
+    };
 
-      switch (key) {
-        case 'MODE':
-          this.config.mode = val;
-          this.currentMode = val;
-          this.updateModeDisplay();
-          break;
-        case 'RUN':
-          this.config.runmode = val;
-          this.currentRunMode = val;
-          this.updateRunModeDisplay();
-          break;
-        case 'CLIMB':
-          this.config.climb = val;
-          break;
-        case 'TRANS':
-          this.config.trans = val;
-          break;
-        case 'VOL':
-          this.config.vol = val;
-          break;
-        case 'TENTHS':
-          this.config.tenths = val === 1;
-          this.updateTimerTextFromMs();
-          break;
-        case 'SYMBOLS':
-          this.config.symbols = val === 1;
-          this.updateSymbolUI();
-          break;
-        case 'BEEP':
-          this.config.beepStyle = val;
-          break;
-        case 'WAVE':
-          this.config.waveform = val;
-          break;
-        case 'MAINT':
-          this.config.maintenance = val === 1;
-          break;
-        case 'LANE':
-          this.config.assignedLane = val;
-          break;
-      }
+    Object.keys(mapping).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = this.config[mapping[id]];
+        if (el.type === 'checkbox') el.checked = !!val;
+        else el.value = val;
     });
-    this.syncFormWithConfig();
-  }
 
-  parseCfgUpdate(data) {
-    const parts = data.split(' ');
-    if (parts.length < 2) return;
-    const key = parts[0].toLowerCase();
-    const value = parts[1];
-    const val = parseInt(value, 10);
-
-    switch (key) {
-      case 'mode':
-        this.config.mode = val;
-        this.currentMode = val;
-        this.updateModeDisplay();
-        break;
-      case 'runmode':
-        this.config.runmode = val;
-        this.currentRunMode = val;
-        this.updateRunModeDisplay();
-        break;
-      case 'climb':
-        this.config.climb = val;
-        break;
-      case 'trans':
-        this.config.trans = val;
-        break;
-      case 'vol':
-        this.config.vol = val;
-        break;
-      case 'tenths':
-        this.config.tenths = val === 1;
-        this.updateTimerTextFromMs();
-        break;
-      case 'theme':
-        this.config.theme = val;
-        this.applyTheme();
-      case 'symbols':
-        this.config.symbols = val === 1;
-        this.updateSymbolUI();
-        break;
-      case 'beep':
-        this.config.beepStyle = val;
-        break;
-      case 'wave':
-        this.config.waveform = val;
-        break;
-      case 'maint':
-        this.config.maintenance = val === 1;
-        break;
-      case 'lane':
-        this.config.assignedLane = val;
-        break;
-    }
-    this.syncFormWithConfig();
-  }
-
-  parseValue(data) {
-    // VAL <value>
-    const value = data.split(' ')[1];
-    this.terminal.print('Value: ' + value, 'info');
-  }
-
-  async sendConfig(key, value) {
-    if (!this.ble.isConnected()) {
-      return;
-    }
-    const command = `CFG ${key} ${value}\n`;
-    try {
-      await this.ble.send(command);
-      this.terminal.print('Sent: ' + command.trim(), 'sent');
-    } catch (error) {
-      this.terminal.print('Send CFG failed: ' + error.message, 'error');
-    }
-  }
-
-  async sendEvent(eventId, meta = 0) {
-    if (!this.ble.isConnected()) {
-      this.terminal.print('Not connected', 'error');
-      return;
-    }
-
-    let command = `EVT ${eventId}`;
-    if (meta > 0) {
-      command += ` ${meta}`;
-    }
-
-    try {
-      await this.ble.send(command + '\n');
-      this.terminal.print('Sent: ' + command, 'sent');
-    } catch (error) {
-      this.terminal.print('Send failed: ' + error.message, 'error');
-    }
-  }
-
-  async sendJudgement(winner) {
-    if (!this.ble.isConnected()) {
-      this.terminal.print('Not connected', 'error');
-      return;
-    }
-
-    // EVT 1 = Judge event (winner 1 or 2)
-    const command = `EVT 1`;
-    try {
-      await this.ble.send(command + '\n');
-      this.terminal.print(`Sent: ${command} (Winner ${winner})`, 'sent');
-    } catch (error) {
-      this.terminal.print('Send failed: ' + error.message, 'error');
-    }
+    const volDisp = document.getElementById('volDisplay');
+    if (volDisp) volDisp.textContent = this.config.V;
+    this.updateModeUI(this.config.M);
   }
 
   async applyConfig() {
-    const newConfig = {
-      climb: Number(document.getElementById('cfg-climb').value),
-      trans: Number(document.getElementById('cfg-trans').value),
-      mode: parseInt(document.getElementById('cfg-mode').value, 10),
-      runmode: parseInt(document.getElementById('cfg-runmode').value, 10),
-      vol: Number(document.getElementById('cfg-vol').value),
-      beepStyle: Number(document.getElementById('cfg-beep-style')?.value || this.config.beepStyle),
-      waveform: Number(document.getElementById('cfg-waveform')?.value || this.config.waveform),
-      symbols: document.getElementById('cfg-symbols').checked,
-      tenths: document.getElementById('cfg-tenths').checked,
-      console: document.getElementById('cfg-console').checked,
-      laneA: document.getElementById('cfg-lane-a').checked,
-      laneB: document.getElementById('cfg-lane-b').checked,
-      theme: parseInt(document.getElementById('cfg-theme').value, 10),
-      maintenance: document.getElementById('cfg-maintenance')?.checked || false,
-      assignedLane: parseInt(document.getElementById('cfg-assigned-lane').value, 10),
+    const updates = [];
+    const mapping = {
+        'C': 'cfg-climb', 'T': 'cfg-trans', 'M': 'cfg-mode', 'Q': 'cfg-runmode',
+        'V': 'cfg-vol', 'Y': 'cfg-symbols', 'X': 'cfg-tenths', 'K': 'cfg-maintenance',
+        'A': 'cfg-assigned-lane', 'B': 'cfg-beep-style', 'W': 'cfg-waveform'
     };
 
-    this.config = { ...this.config, ...newConfig };
+    Object.keys(mapping).forEach(key => {
+        const el = document.getElementById(mapping[key]);
+        if (!el) return;
+        const val = el.type === 'checkbox' ? (el.checked ? 1 : 0) : parseInt(el.value, 10);
+        if (val !== this.config[key]) {
+            updates.push(`${key}${val}`);
+        }
+    });
+
+    if (updates.length > 0) {
+        await this.sendTerminalCommand(`C ${updates.join(' ')}`);
+    }
+
+    const themeEl = document.getElementById('cfg-theme');
+    if (themeEl) {
+        this.config.theme = parseInt(themeEl.value, 10);
+        this.applyTheme();
+    }
+    this.closeConfig();
+  }
+
+  resetConfig() {
     this.syncFormWithConfig();
-    this.updateModeDisplay();
-    this.updateRunModeDisplay();
-    this.updateTimerFormat();
-    this.updateSymbolUI();
-
-    if (!this.ble.isConnected()) {
-      this.terminal.print('Configuration updated locally; connect to send to display', 'info');
-      this.closeConfig();
-      return;
-    }
-
-    try {
-      const commands = [
-        { key: 'climb', value: this.config.climb },
-        { key: 'trans', value: this.config.trans },
-        { key: 'mode', value: this.config.mode },
-        { key: 'runmode', value: this.config.runmode },
-        { key: 'vol', value: this.config.vol },
-        { key: 'tenths', value: this.config.tenths ? 1 : 0 },
-        { key: 'symbols', value: this.config.symbols ? 1 : 0 },
-        { key: 'beep', value: this.config.beepStyle },
-        { key: 'wave', value: this.config.waveform },
-        { key: 'maint', value: this.config.maintenance ? 1 : 0 },
-        { key: 'lane', value: this.config.assignedLane },
-      ];
-
-      for (const cfg of commands) {
-        await this.sendConfig(cfg.key, cfg.value);
-      }
-
-      this.terminal.print('Configuration applied', 'success');
-      this.updateTimerPreview();
-      this.closeConfig();
-    } catch (error) {
-      this.terminal.print('Apply config failed: ' + error.message, 'error');
-    }
   }
 
-  resetConfigForm() {
-    this.syncFormWithConfig();
-    this.terminal.print('Configuration reset', 'info');
+  async sendEvent(code, args = '') {
+    const cmd = `E${code} 0 ${args}`.trim();
+    await this.sendTerminalCommand(cmd);
   }
 
-  updateTimerFormat() {
-    const timerElement = document.getElementById('timerValue');
-    if (!timerElement) return;
-
-    const text = timerElement.textContent || '00:00.0';
-    const base = text.split('.')[0];
-    timerElement.textContent = this.config.tenths ? `${base}.0` : base;
-  }
-
-  updateTimerPreview() {
-    const trans = document.getElementById('transPreview');
-    const climb = document.getElementById('climbPreview');
-    const state = document.getElementById('statePreview');
-    const tone = document.getElementById('tonePreview');
-    const wave = document.getElementById('wavePreview');
-    const ui = document.getElementById('uiPreview');
-
-    if (!trans || !climb || !state) return;
-
-    trans.textContent = `${this.config.trans}s`;
-    climb.textContent = `${this.config.climb}s`;
-    state.textContent = this.getDisplayStateLabel();
-    state.setAttribute('title', this.getDisplayStateLabel());
-
-    if (tone) {
-      const styles = ['PRAGUE', 'INNSB', 'JMSCA'];
-      tone.textContent = styles[this.config.beepStyle] || 'OFF';
-    }
-    if (wave) {
-      wave.textContent = this.config.waveform === 1 ? 'SQUARE' : 'SINE';
-    }
-    if (ui) {
-      const parts = [];
-      if (this.config.symbols) parts.push('SYM');
-      if (this.config.tenths) parts.push('10ths');
-      ui.textContent = parts.length > 0 ? parts.join('+') : 'STD';
-    }
-  }
-
-  getDisplayStateLabel() {
-    if (this.systemState !== undefined && ClimbTimerApp.STATE_NAMES[this.systemState]) {
-      return ClimbTimerApp.STATE_NAMES[this.systemState];
-    }
-
-    if (this.displayState === 'finished') {
-      return 'FINISHED';
-    }
-
-    if (this.displayState === 'paused') {
-      return 'PAUSED';
-    }
-
-    if (this.displayState === 'idle') {
-      return this.config.mode === 1 && this.config.runmode === 0 ? 'AUTO' : 'IDLE';
-    }
-
-    if (this.displayState === 'running') {
-      const elapsedSeconds = this.displayElapsedMs / 1000;
-      if (elapsedSeconds < this.config.trans) {
-        return 'TRANSITION';
-      }
-      return 'CLIMB';
-    }
-
-    return 'UNKNOWN';
-  }
-
-  updateTimerPreviewFromForm() {
-    this.config.trans = Number(document.getElementById('cfg-trans').value);
-    this.config.climb = Number(document.getElementById('cfg-climb').value);
-    this.config.mode = parseInt(document.getElementById('cfg-mode').value, 10);
-    this.config.runmode = parseInt(document.getElementById('cfg-runmode').value, 10);
-    this.updateTimerPreview();
-  }
-
-  updateSymbolUI() {
-    const symbolPrefix = this.config.symbols ? '▶ ' : '';
-    const startLabel = this.currentMode === 1 ? 'PLAY / PAUSE' : 'START';
-
-    document.getElementById('btn-start').textContent = `${symbolPrefix}${startLabel}`;
-    document.getElementById('btn-reset').textContent = `${this.config.symbols ? '⟲ ' : ''}RESET`;
-    document.getElementById('btn-abort').textContent = `${this.config.symbols ? '✖ ' : ''}ABORT`;
-    document.getElementById('btn-finish').textContent = `${this.config.symbols ? '✔ ' : ''}FINISH`;
+  async sendConfig(key, val) {
+    await this.sendTerminalCommand(`C ${key}${val}`);
   }
 
   async sendTerminalCommand(cmd = null) {
     const input = cmd || document.getElementById('terminalInput').value.trim();
     if (!input) return;
 
-    if (!cmd && !this.ble.isConnected()) {
-      this.terminal.print('Not connected', 'error');
-      return;
-    }
-
     try {
-      await this.ble.send(input + '\n');
-      this.terminal.print('Sent: ' + input, 'sent');
-      if (!cmd) document.getElementById('terminalInput').value = '';
+      await this.transport.send(input);
+      this.terminal?.print('Sent: ' + input, 'sent');
+      if (!cmd) {
+        const inputEl = document.getElementById('terminalInput');
+        if (inputEl) inputEl.value = '';
+      }
     } catch (error) {
-      this.terminal.print('Send failed: ' + error.message, 'error');
+      this.terminal?.print('Error: ' + error.message, 'error');
     }
   }
 
-  toggleConfig() {
-    const panel = document.getElementById('configPanel');
-    panel.classList.toggle('hidden');
-  }
-
-  closeConfig() {
-    document.getElementById('configPanel').classList.add('hidden');
-  }
-
-  toggleTerminal() {
-    const panel = document.getElementById('terminalPanel');
-    panel.classList.toggle('hidden');
-  }
-
-  closeTerminal() {
-    document.getElementById('terminalPanel').classList.add('hidden');
+  updateModeUI(mode) {
+    const runModeCfg = document.getElementById('runModeConfig');
+    if (runModeCfg) runModeCfg.classList.toggle('hidden', mode === 0);
+    this.updateModeDisplay();
   }
 
   updateModeDisplay() {
     const modes = ['IFSC SPEED', 'BOULDER', 'LEAD', 'CLOCK'];
-    document.getElementById('modeDisplay').textContent = modes[this.currentMode] || '--';
+    const modeDisp = document.getElementById('modeDisplay');
+    if (modeDisp) modeDisp.textContent = modes[this.currentMode] || '--';
 
-    const bodyClasses = ['mode-speed', 'mode-boulder', 'mode-lead', 'mode-clock'];
-    document.body.className = bodyClasses[this.currentMode] || '';
+    document.body.className = `mode-${['speed', 'boulder', 'lead', 'clock'][this.currentMode]}`;
 
-    const speedOnly = document.querySelectorAll('.mode-speed-only');
-    const boulderOnly = document.querySelectorAll('.mode-boulder-only');
+    document.querySelectorAll('.mode-speed-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 0));
+    document.querySelectorAll('.mode-boulder-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 1));
 
-    speedOnly.forEach((el) => {
-      el.classList.toggle('hidden', this.currentMode !== 0);
-    });
-    boulderOnly.forEach((el) => {
-      el.classList.toggle('hidden', this.currentMode !== 1);
-    });
-
-    const startButton = document.getElementById('btn-start');
-    if (startButton) {
-      startButton.textContent = this.config.symbols ? '▶ ' + (this.currentMode === 1 ? 'PLAY / PAUSE' : 'START') : (this.currentMode === 1 ? 'PLAY / PAUSE' : 'START');
-    }
+    this.updateSymbolUI();
   }
 
   updateRunModeDisplay() {
     const runModes = ['AUTO-LOOP', 'REFEREE'];
-    document.getElementById('runModeDisplay').textContent = runModes[this.currentRunMode] || '--';
+    const runModeDisp = document.getElementById('runModeDisplay');
+    if (runModeDisp) runModeDisp.textContent = runModes[this.currentRunMode] || '--';
+  }
+
+  updateSymbolUI() {
+    const prefix = this.config.Y ? '▶ ' : '';
+    const startLabel = this.currentMode === 1 ? 'PLAY / PAUSE' : 'START';
+    const startBtn = document.getElementById('btn-start');
+    if (startBtn) startBtn.textContent = `${prefix}${startLabel}`;
+    const resetBtn = document.getElementById('btn-reset');
+    if (resetBtn) resetBtn.textContent = `${this.config.Y ? '⟲ ' : ''}RESET`;
+  }
+
+  updateTimerPreview() {
+    const transPrev = document.getElementById('transPreview');
+    if (transPrev) transPrev.textContent = `${this.config.T}s`;
+    const climbPrev = document.getElementById('climbPreview');
+    if (climbPrev) climbPrev.textContent = `${this.config.C}s`;
+    const statePrev = document.getElementById('statePreview');
+    if (statePrev) statePrev.textContent = this.getDisplayStateLabel();
+
+    const toneStyles = ['PRAGUE', 'INNSB', 'JAPAN'];
+    const tonePrev = document.getElementById('tonePreview');
+    if (tonePrev) tonePrev.textContent = toneStyles[this.config.B] || '--';
+    const wavePrev = document.getElementById('wavePreview');
+    if (wavePrev) wavePrev.textContent = this.config.W ? 'SQUARE' : 'SINE';
+
+    const uiParts = [];
+    if (this.config.Y) uiParts.push('SYM');
+    if (this.config.X) uiParts.push('10ths');
+    const uiPrev = document.getElementById('uiPreview');
+    if (uiPrev) uiPrev.textContent = uiParts.join('+') || 'STD';
+  }
+
+  getDisplayStateLabel() {
+    if (this.displayState === 'idle') return 'IDLE';
+    return ClimbTimerApp.STATE_NAMES[this.systemState] || '---';
   }
 
   applyTheme() {
     const root = document.documentElement;
     if (this.config.theme === 0) {
-      // Pro Dark (High Contrast) - default
       root.style.setProperty('--bg', '#0f172a');
       root.style.setProperty('--card', '#1e293b');
       root.style.setProperty('--text', '#f8fafc');
       root.style.setProperty('--accent', '#38bdf8');
-    } else if (this.config.theme === 1) {
-      // IFSC Official Colors
+    } else {
       root.style.setProperty('--bg', '#1a1a1a');
       root.style.setProperty('--card', '#2d2d2d');
       root.style.setProperty('--text', '#ffffff');
@@ -903,23 +540,20 @@ class ClimbTimerApp {
     }
   }
 
-  updateModeUI(mode) {
-    document.getElementById('runModeConfig').classList.toggle('hidden', mode === 0);
-  }
+  toggleConfig() { document.getElementById('configPanel')?.classList.toggle('hidden'); }
+  closeConfig() { document.getElementById('configPanel')?.classList.add('hidden'); }
+  toggleTerminal() { document.getElementById('terminalPanel')?.classList.toggle('hidden'); }
+  closeTerminal() { document.getElementById('terminalPanel')?.classList.add('hidden'); }
 
   setControlsEnabled(enabled) {
-    document.getElementById('btn-start').disabled = !enabled;
-    document.getElementById('btn-reset').disabled = !enabled;
-    document.getElementById('btn-abort').disabled = !enabled;
-    document.getElementById('btn-finish').disabled = !enabled;
-    document.getElementById('btn-winner-a').disabled = !enabled;
-    document.getElementById('btn-winner-b').disabled = !enabled;
-    document.getElementById('btn-fall-a').disabled = !enabled;
-    document.getElementById('btn-fall-b').disabled = !enabled;
+    const ids = ['btn-start', 'btn-reset', 'btn-abort', 'btn-finish', 'btn-winner-a', 'btn-winner-b', 'btn-fall-a', 'btn-fall-b'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !enabled;
+    });
   }
 }
 
-// Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new ClimbTimerApp();
 });
