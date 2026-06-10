@@ -94,8 +94,10 @@ export class ClimbTimerApp {
 
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
-    document.getElementById('applyConfig')?.addEventListener('click', () => this.applyConfig());
-    document.getElementById('resetConfig')?.addEventListener('click', () => this.resetConfig());
+    document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
+      this.config.theme = parseInt(e.target.value, 10);
+      this.applyTheme();
+    });
 
     const immediateConfigs = {
       'cfg-climb': 'C',
@@ -114,16 +116,19 @@ export class ClimbTimerApp {
       document.getElementById(id)?.addEventListener('change', (e) => {
         const key = immediateConfigs[id];
         const val = e.target.type === 'checkbox' ? (e.target.checked ? 1 : 0) : parseInt(e.target.value, 10);
+        this.config[key] = val;
         this.sendConfig(key, val);
         if (id === 'cfg-vol') {
            const volDisp = document.getElementById('volDisplay');
            if (volDisp) volDisp.textContent = val;
         }
+        this.updateTimerPreview();
       });
     });
 
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
+      this.config.M = mode;
       this.sendConfig('M', mode);
       this.updateModeUI(mode);
     });
@@ -474,38 +479,6 @@ export class ClimbTimerApp {
     this.updateModeUI(this.config.M);
   }
 
-  async applyConfig() {
-    const updates = [];
-    const mapping = {
-        'C': 'cfg-climb', 'T': 'cfg-trans', 'M': 'cfg-mode', 'Q': 'cfg-runmode',
-        'V': 'cfg-vol', 'Y': 'cfg-symbols', 'X': 'cfg-tenths', 'K': 'cfg-maintenance',
-        'A': 'cfg-assigned-lane', 'B': 'cfg-beep-style', 'W': 'cfg-waveform'
-    };
-
-    Object.keys(mapping).forEach(key => {
-        const el = document.getElementById(mapping[key]);
-        if (!el) return;
-        const val = el.type === 'checkbox' ? (el.checked ? 1 : 0) : parseInt(el.value, 10);
-        if (val !== this.config[key]) {
-            updates.push(`${key}${val}`);
-        }
-    });
-
-    if (updates.length > 0) {
-        await this.sendTerminalCommand(`C ${updates.join(' ')}`);
-    }
-
-    const themeEl = document.getElementById('cfg-theme');
-    if (themeEl) {
-        this.config.theme = parseInt(themeEl.value, 10);
-        this.applyTheme();
-    }
-    this.closeConfig();
-  }
-
-  resetConfig() {
-    this.syncFormWithConfig();
-  }
 
   async sendEvent(code, args = '') {
     const cmd = `E${code} 0 ${args}`.trim();
