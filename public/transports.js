@@ -41,10 +41,15 @@ export class BLETransport {
 
   async disconnect() {
     try {
-      if (this.txCharacteristic) {
-        await this.txCharacteristic.stopNotifications();
+      if (this.device) {
+        this.device.removeEventListener('gattserverdisconnected', this._boundHandleDisconnection);
       }
-      if (this.device && this.device.gatt.connected) {
+      if (this.txCharacteristic) {
+        try {
+          await this.txCharacteristic.stopNotifications();
+        } catch (e) {}
+      }
+      if (this.device && this.device.gatt && this.device.gatt.connected) {
         await this.device.gatt.disconnect();
       }
     } catch (error) {

@@ -97,6 +97,31 @@ export class ClimbTimerApp {
     document.getElementById('applyConfig')?.addEventListener('click', () => this.applyConfig());
     document.getElementById('resetConfig')?.addEventListener('click', () => this.resetConfig());
 
+    const immediateConfigs = {
+      'cfg-climb': 'C',
+      'cfg-trans': 'T',
+      'cfg-runmode': 'Q',
+      'cfg-vol': 'V',
+      'cfg-symbols': 'Y',
+      'cfg-tenths': 'X',
+      'cfg-maintenance': 'K',
+      'cfg-assigned-lane': 'A',
+      'cfg-beep-style': 'B',
+      'cfg-waveform': 'W'
+    };
+
+    Object.keys(immediateConfigs).forEach(id => {
+      document.getElementById(id)?.addEventListener('change', (e) => {
+        const key = immediateConfigs[id];
+        const val = e.target.type === 'checkbox' ? (e.target.checked ? 1 : 0) : parseInt(e.target.value, 10);
+        this.sendConfig(key, val);
+        if (id === 'cfg-vol') {
+           const volDisp = document.getElementById('volDisplay');
+           if (volDisp) volDisp.textContent = val;
+        }
+      });
+    });
+
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
       this.sendConfig('M', mode);
@@ -187,6 +212,7 @@ export class ClimbTimerApp {
     document.getElementById('connectButtons').style.display = 'flex';
     document.getElementById('deviceInfo').classList.add('hidden');
     this.setControlsEnabled(false);
+    this.transport = null;
   }
 
   handleData(data) {
