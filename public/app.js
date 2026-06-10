@@ -5,9 +5,9 @@ import { Terminal } from './terminal.js';
 // Climb Timer Control App (G-Code Protocol)
 // ============================================================================
 
-class ClimbTimerApp {
+export class ClimbTimerApp {
   constructor() {
-    this.transport = this.detectTransport();
+    this.transport = null;
     this.terminal = null;
     this.currentMode = 0;
     this.currentRunMode = 0;
@@ -39,17 +39,37 @@ class ClimbTimerApp {
     this.initializeUI();
   }
 
-  detectTransport() {
-    const isLocal = window.location.hostname !== 'localhost' &&
-                    window.location.hostname !== '127.0.0.1' &&
-                    window.location.hostname !== '';
+  getDefaultTransportType() {
+    const hostname = window.location.hostname;
+    const params = new URLSearchParams(window.location.search);
 
-    if (isLocal || window.location.search.includes('transport=http')) {
-      console.log('Using HTTP Transport');
-      return new HTTPTransport();
+    if (params.get('transport') === 'http') return 'http';
+    if (params.get('transport') === 'ble') return 'ble';
+
+    // IP address detection (v4)
+    const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (ipRegex.test(hostname) || hostname.endsWith('.local')) {
+      return 'http';
     }
-    console.log('Using BLE Transport');
-    return new BLETransport();
+
+    // If we're not on a standard "web" domain, might be on-device
+    const isStandardWeb = hostname === 'localhost' ||
+                          hostname === '127.0.0.1' ||
+                          hostname === '' ||
+                          hostname.endsWith('.pages.dev') ||
+                          hostname.endsWith('.github.io');
+
+    return isStandardWeb ? 'ble' : 'http';
+  }
+
+  async checkServerHeader() {
+    try {
+      const resp = await fetch(window.location.href, { method: 'HEAD' });
+      const server = resp.headers.get('Server');
+      return !!(server && server.toLowerCase().includes('esp32'));
+    } catch (e) {
+      return false;
+    }
   }
 
   initializeUI() {
@@ -58,7 +78,8 @@ class ClimbTimerApp {
       this.terminal = new Terminal(terminalEl);
     }
 
-    document.getElementById('connectBtn')?.addEventListener('click', () => this.connect());
+    document.getElementById('connectBleBtn')?.addEventListener('click', () => this.connect('ble'));
+    document.getElementById('connectHttpBtn')?.addEventListener('click', () => this.connect('http'));
     document.getElementById('disconnectBtn')?.addEventListener('click', () => this.disconnect());
 
     document.getElementById('btn-start')?.addEventListener('click', () => this.sendEvent(6));
@@ -103,12 +124,32 @@ class ClimbTimerApp {
     this.updateTimerPreview();
     this.applyTheme();
 
-    if (this.transport instanceof HTTPTransport) {
-        this.connect();
+    this.handleAutoConnect();
+  }
+
+  async handleAutoConnect() {
+    const defaultType = this.getDefaultTransportType();
+    if (defaultType === 'http') {
+      const isESP = await this.checkServerHeader();
+      if (isESP || window.location.hostname.endsWith('.local')) {
+        this.connect('http');
+      }
     }
   }
 
-  async connect() {
+  async connect(type) {
+    if (this.transport && this.transport.isConnected()) {
+      await this.disconnect();
+    }
+
+    if (type === 'ble') {
+      this.transport = new BLETransport();
+    } else if (type === 'http') {
+      this.transport = new HTTPTransport();
+    }
+
+    if (!this.transport) return;
+
     try {
       await this.transport.connect();
       this.terminal?.print('Connected to: ' + this.transport.getDeviceName(), 'success');
@@ -119,7 +160,7 @@ class ClimbTimerApp {
       const indicator = document.getElementById('statusIndicator');
       if (indicator) indicator.className = 'status-dot connected';
       document.getElementById('statusText').textContent = 'Connected';
-      document.getElementById('connectBtn').style.display = 'none';
+      document.getElementById('connectButtons').style.display = 'none';
       document.getElementById('deviceInfo').classList.remove('hidden');
       document.getElementById('deviceName').textContent = this.transport.getDeviceName();
 
@@ -143,7 +184,7 @@ class ClimbTimerApp {
     const indicator = document.getElementById('statusIndicator');
     if (indicator) indicator.className = 'status-dot disconnected';
     document.getElementById('statusText').textContent = 'Disconnected';
-    document.getElementById('connectBtn').style.display = 'block';
+    document.getElementById('connectButtons').style.display = 'flex';
     document.getElementById('deviceInfo').classList.add('hidden');
     this.setControlsEnabled(false);
   }
@@ -554,6 +595,8 @@ class ClimbTimerApp {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.app = new ClimbTimerApp();
-});
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.app = new ClimbTimerApp();
+  });
+}

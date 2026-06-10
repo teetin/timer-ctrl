@@ -19,7 +19,10 @@
                 <div id="statusIndicator" class="status-dot disconnected"></div>
                 <span id="statusText">Disconnected</span>
             </div>
-            <button id="connectBtn" class="btn btn-primary">Connect to Display</button>
+            <div id="connectButtons" class="connect-buttons">
+                <button id="connectBleBtn" class="btn btn-primary">Connect via Bluetooth</button>
+                <button id="connectHttpBtn" class="btn btn-primary">Connect via WiFi</button>
+            </div>
             <div id="deviceInfo" class="device-info hidden">
                 <span id="deviceName"></span>
                 <button id="disconnectBtn" class="btn btn-secondary">Disconnect</button>
