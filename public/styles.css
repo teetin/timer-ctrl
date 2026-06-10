@@ -2,7 +2,7 @@
   --bg: #0f172a;
   --card: #1e293b;
   --text: #f8fafc;
-  --accent: #38bdf8;
+  --accent: #8a2be2;
   --success: #22c55e;
   --warning: #eab308;
   --danger: #ef4444;
@@ -14,6 +14,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -21,12 +22,16 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior-y: contain;
 }
 
 .app-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px;
+  padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+    calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
 }
 
 /* Connection Panel */
@@ -137,7 +142,7 @@ body {
 .mode-info,
 .run-mode-info,
 .timer-display {
-  background: rgba(56, 189, 248, 0.1);
+  background: rgba(138, 43, 226, 0.1);
   border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 12px;
@@ -190,7 +195,7 @@ body {
   align-items: center;
   padding: 10px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.2);
   border-radius: 10px;
 }
 
@@ -221,6 +226,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.95rem;
+  touch-action: manipulation;
 }
 
 .btn:disabled {
@@ -238,7 +244,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #07b6f7;
+  background: #7a1fd1;
 }
 
 .btn-secondary {
@@ -287,12 +293,12 @@ body {
 }
 
 .btn-judge {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-judge:hover:not(:disabled) {
-  background: #2563eb;
+  background: #7a1fd1;
 }
 
 .btn-fall {
@@ -331,8 +337,8 @@ body {
 /* Judging Section */
 .judging-section {
   padding: 16px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid #3b82f6;
+  background: rgba(138, 43, 226, 0.1);
+  border: 1px solid var(--accent);
   border-radius: 8px;
   margin-bottom: 20px;
 }
@@ -371,7 +377,7 @@ summary {
 }
 
 summary:hover {
-  background: rgba(56, 189, 248, 0.1);
+  background: rgba(138, 43, 226, 0.1);
 }
 
 summary::before {
@@ -420,7 +426,7 @@ details[open] summary {
 .config-group select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
 }
 
 .config-group input[type="range"] {
@@ -521,6 +527,8 @@ body.mode-clock .mode-boulder-only {
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .terminal-input input:focus {
