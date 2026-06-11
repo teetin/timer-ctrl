@@ -97,6 +97,93 @@ export class BLETransport {
   }
 }
 
+export class WebSocketTransport {
+  constructor(baseUrl = '') {
+    // Convert http/https to ws/wss
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = baseUrl || window.location.host;
+    this.wsUrl = `${protocol}//${host}/ws`;
+    this.socket = null;
+    this.onReceiveCallback = null;
+    this.disconnectCallbacks = [];
+    this.connected = false;
+  }
+
+  async connect() {
+    if (this.socket) await this.disconnect();
+
+    return new Promise((resolve, reject) => {
+      try {
+        this.socket = new WebSocket(this.wsUrl);
+
+        this.socket.onopen = () => {
+          this.connected = true;
+          resolve(true);
+        };
+
+        this.socket.onerror = (err) => {
+          console.error('WebSocket Error:', err);
+          if (!this.connected) {
+            reject(new Error('Failed to connect to WebSocket'));
+          }
+        };
+
+        this.socket.onclose = () => {
+          this._handleDisconnection();
+        };
+
+        this.socket.onmessage = (event) => {
+          if (this.onReceiveCallback) {
+            this.onReceiveCallback(event.data);
+          }
+        };
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async disconnect() {
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+    this._handleDisconnection();
+  }
+
+  async send(data) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket is not open');
+    }
+    // G-code protocol usually expects newline
+    const d = data.endsWith('\n') ? data : data + '\n';
+    this.socket.send(d);
+  }
+
+  onReceive(callback) {
+    this.onReceiveCallback = callback;
+  }
+
+  onDisconnected(callback) {
+    this.disconnectCallbacks.push(callback);
+  }
+
+  isConnected() {
+    return this.connected && this.socket && this.socket.readyState === WebSocket.OPEN;
+  }
+
+  getDeviceName() {
+    return `Unit (${window.location.hostname})`;
+  }
+
+  _handleDisconnection() {
+    if (this.connected) {
+      this.connected = false;
+      this.disconnectCallbacks.forEach((cb) => cb());
+    }
+  }
+}
+
 export class HTTPTransport {
   constructor(baseUrl = '') {
     this.baseUrl = baseUrl;
@@ -129,28 +216,7 @@ export class HTTPTransport {
 
         this.eventSource.onmessage = (event) => {
           if (!this.onReceiveCallback) return;
-
-          try {
-            const data = JSON.parse(event.data);
-            if (typeof data === 'string') {
-              this.onReceiveCallback(data);
-            } else if (data.id !== undefined) {
-              // Reconstruct G-code string from JSON
-              // Format: E<code> <ts:hex> [args...]
-              let msg = `E${data.id} ${(data.ts || 0).toString(16)}`;
-
-              // Map common keys if they exist in the JSON
-              if (data.meta !== undefined) msg += ` M${data.meta.toString(16)}`;
-              if (data.lane !== undefined) msg += ` L${data.lane}`;
-              if (data.state !== undefined) msg += ` S${data.state}`;
-              if (data.node !== undefined) msg += ` N${data.node}`;
-              if (data.athlete !== undefined) msg += ` A${data.athlete.toString(16)}`;
-
-              this.onReceiveCallback(msg);
-            }
-          } catch (e) {
-            this.onReceiveCallback(event.data);
-          }
+          this.onReceiveCallback(event.data);
         };
       } catch (error) {
         reject(error);
@@ -168,6 +234,7 @@ export class HTTPTransport {
 
   async send(data) {
     const trimmed = data.trim();
+    // Reverting to /cmd if needed, or keeping existing logic
     const url = `${this.baseUrl}/cmd?val=${encodeURIComponent(trimmed)}`;
 
     try {
@@ -175,7 +242,6 @@ export class HTTPTransport {
       if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
       const text = await resp.text();
       if (text && this.onReceiveCallback) {
-        // Many G-code implementations echo the command or return OK
         this.onReceiveCallback(text);
       }
     } catch (error) {

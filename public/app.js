@@ -1,4 +1,4 @@
-import { BLETransport, HTTPTransport } from './transports.js';
+import { BLETransport, HTTPTransport, WebSocketTransport } from './transports.js';
 import { Terminal } from './terminal.js';
 
 // ============================================================================
@@ -160,10 +160,7 @@ export class ClimbTimerApp {
   async handleAutoConnect() {
     const defaultType = this.getDefaultTransportType();
     if (defaultType === 'http') {
-      const isESP = await this.checkServerHeader();
-      if (isESP || window.location.hostname.endsWith('.local')) {
-        this.connect('http');
-      }
+      this.connect('http');
     }
   }
 
@@ -175,13 +172,25 @@ export class ClimbTimerApp {
     if (type === 'ble') {
       this.transport = new BLETransport();
     } else if (type === 'http') {
-      this.transport = new HTTPTransport();
+      // Try WebSocket first, fallback to HTTP+SSE if it fails
+      this.transport = new WebSocketTransport();
     }
 
     if (!this.transport) return;
 
     try {
-      await this.transport.connect();
+      try {
+        await this.transport.connect();
+      } catch (e) {
+        if (type === 'http' && this.transport instanceof WebSocketTransport) {
+          this.terminal?.print('WebSocket failed, falling back to HTTP+SSE...', 'info');
+          this.transport = new HTTPTransport();
+          await this.transport.connect();
+        } else {
+          throw e;
+        }
+      }
+
       this.terminal?.print('Connected to: ' + this.transport.getDeviceName(), 'success');
 
       this.transport.onReceive((data) => this.handleData(data));
