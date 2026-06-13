@@ -31,8 +31,10 @@ export class ClimbTimerApp {
 
     this.systemState = 0;
     this.displayState = 'idle';
+    this.pausedInTransition = false;
     this.displayElapsedMs = 0;
     this.displayInterval = null;
+    this.lastTick = 0;
     this.lineBuffer = '';
     this.timerTotal = 0;
 
@@ -259,16 +261,19 @@ export class ClimbTimerApp {
 
   parseEvent(data) {
     const parts = data.split(/\s+/);
-    if (parts.length < 2) return;
+    if (parts.length < 1) return;
 
     const code = parseInt(parts[0], 10);
-    const ts = parts[1];
-    const args = this.parseArgs(parts.slice(2), 'E');
+    // New protocol has no timestamp. Skip if it looks like a legacy hex timestamp.
+    let argIndex = 1;
+    if (parts.length > 2 && /^[0-9a-fA-F]+$/.test(parts[1]) && /^[A-Z]/.test(parts[2])) {
+      argIndex = 2;
+    }
+    const args = this.parseArgs(parts.slice(argIndex), 'E');
 
     switch (code) {
       case 3: // RACE_START
         this.handleStateChange(0, 6); // RACING
-        this.startDisplayTimer(0, 6);
         break;
       case 7: // RACE_FINISH
         this.handleStateChange(0, 7); // FINISHED
@@ -280,29 +285,88 @@ export class ClimbTimerApp {
         this.resetDisplayTimer();
         this.sendTerminalCommand('G');
         break;
-      case 12: // DISP_SYNC_START M[state(8)|elapsed(24)]
-        if (args.M !== undefined) {
-          const val = parseInt(args.M, 16);
-          const state = (val >> 24) & 0xFF;
-          const elapsed = val & 0xFFFFFF;
-          this.handleStateChange(0, state);
-          this.startDisplayTimer(elapsed, state);
-        }
-        break;
-      case 13: // DISP_SYNC_STOP M[state(8)|res(4)|elapsed(20)]
-        if (args.M !== undefined) {
-          const val = parseInt(args.M, 16);
-          const state = (val >> 24) & 0xFF;
-          const res = (val >> 20) & 0xF;
-          const elapsed = val & 0xFFFFF;
+      case 12: // DISP_SYNC_START S<state> E<elapsed>
+        if (args.S !== undefined) {
+          const state = args.S;
+          const elapsed = args.E || 0;
+          // Standardize behavior for sync start: set flags then let handleStateChange start timer
+          if (state === 4) this.pausedInTransition = false;
           this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
-          this.finishDisplayTimer();
+        } else if (args.M !== undefined) { // Legacy fallback
+          const val = args.M; // Already parsed as decimal now, but legacy was hex.
+          // If it was hex, this might fail, but user wants decimal anyway.
+          const state = val & 0xFF;
+          const elapsed = (val >> 8) & 0xFFFFFF;
+          this.displayElapsedMs = elapsed;
+          this.handleStateChange(0, state);
+        }
+        break;
+      case 13: // DISP_SYNC_STOP S<state> R<result> E<elapsed>
+        if (args.S !== undefined) {
+          const state = args.S;
+          const res = args.R || 0;
+          const elapsed = args.E || 0;
+          if (state === 9) this.pausedInTransition = !!(res & 0x08);
+          this.displayElapsedMs = elapsed;
+          this.handleStateChange(0, state);
+        } else if (args.M !== undefined) { // Legacy fallback
+          const val = args.M;
+          const state = val & 0xFF;
+          const res = (val >> 8) & 0x0F;
+          const elapsed = (val >> 12) & 0xFFFFF;
+          if (state === 9) this.pausedInTransition = !!(res & 0x08);
+          this.displayElapsedMs = elapsed;
+          this.handleStateChange(0, state);
         }
         break;
       case 25: // STATE_CHANGE L<lane> S<state>
         this.handleStateChange(args.L || 0, args.S || 0);
         break;
+      case 26: // CONFIG_UPDATED K<type> V<value>
+        this.handleConfigUpdate(args.K, args.V);
+        break;
+      case 15: // DISPLAY_SYNC_MODE M[mode]
+        if (args.M !== undefined) {
+          const mode = args.M;
+          this.config.M = mode;
+          this.currentMode = mode;
+          this.updateModeUI(mode);
+        }
+        break;
+    }
+  }
+
+  handleConfigUpdate(type, val) {
+    const mapping = {
+      1: 'C', // CFG_TYPE_CLIMB_MS
+      2: 'T', // CFG_TYPE_TRANS_MS
+      3: 'B', // CFG_TYPE_BEEP_STYLE
+      4: 'Q', // CFG_TYPE_RUN_MODE
+      5: 'X', // CFG_TYPE_SHOW_TENTHS
+      6: 'Y', // CFG_TYPE_USE_SYMBOLS
+      7: 'theme', // CFG_TYPE_UI_THEME
+      8: 'W', // CFG_TYPE_AUDIO_SQUARE
+      9: 'V', // CFG_TYPE_AUDIO_VOL
+      12: 'K', // CFG_TYPE_MAINT_EN
+      13: 'A'  // CFG_TYPE_LANE_ASSIGN
+    };
+
+    const key = mapping[type];
+    if (key) {
+      let finalVal = val;
+      if (key === 'C' || key === 'T') finalVal = Math.floor(val / 1000);
+      this.config[key] = finalVal;
+      if (key === 'Q') this.currentRunMode = finalVal;
+
+      this.syncFormWithConfig();
+      this.updateTimerPreview();
+      this.updateSymbolUI();
+
+      if (key === 'C' || key === 'T') {
+        this.updateTimerTotal(this.systemState);
+        this.updateTimerTextFromMs();
+      }
     }
   }
 
@@ -354,18 +418,8 @@ export class ClimbTimerApp {
         const key = p[0].toUpperCase();
         const valStr = p.substring(1);
 
-        if (context === 'E') {
-            // Events: M (Metadata), A (Athlete), C (Color) are Hex.
-            if (['M', 'A', 'C'].includes(key)) {
-                args[key] = valStr; // Hex string
-            } else {
-                args[key] = parseInt(valStr, 10);
-            }
-        } else {
-            // Config (C/G/S): All are Decimal, including M (Mode), C (Climb Time), etc.
-            // EXCEPT if Athlete or Metadata were ever in config, but they aren't in the table.
-            args[key] = parseInt(valStr, 10);
-        }
+        // All values are now Decimal in the unified protocol
+        args[key] = parseInt(valStr, 10);
     });
     return args;
   }
@@ -376,16 +430,16 @@ export class ClimbTimerApp {
   ];
 
   handleStateChange(lane, stateIdx) {
-    this.systemState = stateIdx;
     const stateName = ClimbTimerApp.STATE_NAMES[stateIdx] || `ST(${stateIdx})`;
     this.terminal?.print(`State [L${lane}]: ${stateName}`, 'info');
 
     if ([3, 4, 6].includes(stateIdx)) {
-      if (this.displayState !== 'running') {
-        this.startDisplayTimer(0, stateIdx);
-      } else {
-        this.updateTimerTotal(stateIdx);
+      // Only reset elapsed if we are NOT resuming from a PAUSED state and it's a NEW state
+      if (stateIdx !== this.systemState && this.systemState !== 9) {
+        this.pausedInTransition = false;
+        this.displayElapsedMs = 0;
       }
+      this.startDisplayTimer(this.displayElapsedMs, stateIdx);
     } else if ([7, 8, 10].includes(stateIdx)) {
       this.finishDisplayTimer();
     } else if ([0, 11].includes(stateIdx)) {
@@ -393,13 +447,20 @@ export class ClimbTimerApp {
     } else if (stateIdx === 9) {
       this.pauseDisplayTimer();
     }
+
+    this.systemState = stateIdx;
     this.updateTimerPreview();
+    this.updateTimerTextFromMs();
   }
 
   updateTimerTotal(stateIdx) {
-    if (stateIdx === 4) this.timerTotal = this.config.T * 1000;
-    else if (stateIdx === 6) this.timerTotal = this.config.C * 1000;
-    else if (stateIdx === 3) this.timerTotal = 5000;
+    if (stateIdx === 4 || (stateIdx === 9 && this.pausedInTransition)) {
+      this.timerTotal = this.config.T * 1000;
+    } else if (stateIdx === 6 || (stateIdx === 9 && !this.pausedInTransition)) {
+      this.timerTotal = this.config.C * 1000;
+    } else if (stateIdx === 3) {
+      this.timerTotal = 5000;
+    }
   }
 
   startDisplayTimer(elapsed = 0, stateIdx = null) {
@@ -409,11 +470,15 @@ export class ClimbTimerApp {
     if (stateIdx !== null) this.systemState = stateIdx;
     this.updateTimerTotal(this.systemState);
 
+    this.lastTick = Date.now();
     this.updateTimerTextFromMs();
     this.displayInterval = setInterval(() => {
-      this.displayElapsedMs += 100;
+      const now = Date.now();
+      const delta = now - this.lastTick;
+      this.lastTick = now;
+      this.displayElapsedMs += delta;
       this.updateTimerTextFromMs();
-    }, 100);
+    }, 50); // High frequency for better accuracy
   }
 
   pauseDisplayTimer() {
@@ -443,21 +508,82 @@ export class ClimbTimerApp {
     const el = document.getElementById('timerValue');
     if (!el) return;
 
+    // 1. Handle IDLE state display
+    if (this.displayState === 'idle') {
+      if (this.currentMode === 0) { // SPEED
+        el.textContent = '00.000';
+        el.style.color = '#ff4444';
+      } else if (this.currentMode === 3) { // CLOCK
+        const now = new Date();
+        el.textContent = now.toTimeString().split(' ')[0];
+        el.style.color = '';
+      } else {
+        el.textContent = '--';
+        el.style.color = '#94a3b8';
+      }
+      return;
+    }
+
+    // 2. Handle special competition states
+    if (this.systemState === 8 && this.currentMode !== 0) { // FALSE_START
+      el.textContent = 'FALSE';
+      el.style.color = '#ff4444';
+      return;
+    }
+    if (this.systemState === 7 && this.currentMode !== 0) { // FINISHED
+      el.textContent = 'DONE';
+      el.style.color = '#38bdf8';
+      return;
+    }
+    if (this.systemState === 3 && this.currentMode === 0) { // BEEPING (Speed SET)
+      el.textContent = 'SET';
+      el.style.color = '#ff4444';
+      return;
+    }
+
+    // 3. Handle running timer logic
     let ms = this.displayElapsedMs;
-    if (this.currentMode === 1 || this.currentMode === 2) {
+    let color = '';
+    const mode = parseInt(this.config.M, 10);
+
+    if (mode === 1 || mode === 2) { // Boulder/Lead countdown
       ms = Math.max(0, this.timerTotal - this.displayElapsedMs);
+      if (this.systemState === 4 || (this.systemState === 9 && this.pausedInTransition)) { // TRANSITION or PAUSED-IN-TRANS
+        color = '#fbbf24'; // Orange/Amber
+      } else if (ms <= 5000 && (this.systemState === 6 || this.systemState === 9)) { // Final 5s of Racing or PAUSED-IN-RACING
+        color = '#ff4444';
+      }
     }
 
     const totalSec = Math.floor(ms / 1000);
     const min = Math.floor(totalSec / 60);
     const sec = totalSec % 60;
-    const tenths = Math.floor((ms % 1000) / 100);
 
-    if (this.config.X) {
-      el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${tenths}`;
+    if (mode === 0) { // SPEED
+      if (this.displayState === 'finished') {
+        const fraction = ms % 1000;
+        el.textContent = `${String(totalSec).padStart(2, '0')}.${String(fraction).padStart(3, '0')}`;
+      } else {
+        const fraction = Math.floor((ms % 1000) / 10);
+        el.textContent = `${String(totalSec).padStart(2, '0')}.${String(fraction).padStart(2, '0')}`;
+      }
     } else {
-      el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      const tenths = Math.floor((ms % 1000) / 100);
+      if (this.config.X) {
+        if (min > 0) {
+          el.textContent = `${min}:${String(sec).padStart(2, '0')}.${tenths}`;
+        } else {
+          el.textContent = `${sec}.${tenths}`;
+        }
+      } else {
+        if (min > 0) {
+          el.textContent = `${min}:${String(sec).padStart(2, '0')}`;
+        } else {
+          el.textContent = `${String(sec).padStart(2, '0')}`;
+        }
+      }
     }
+    el.style.color = color;
   }
 
   syncFormWithConfig() {
@@ -490,7 +616,7 @@ export class ClimbTimerApp {
 
 
   async sendEvent(code, args = '') {
-    const cmd = `E${code} 0 ${args}`.trim();
+    const cmd = `E${code} ${args}`.trim();
     await this.sendTerminalCommand(cmd);
   }
 
@@ -515,6 +641,7 @@ export class ClimbTimerApp {
   }
 
   updateModeUI(mode) {
+    this.config.M = mode;
     const runModeCfg = document.getElementById('runModeConfig');
     if (runModeCfg) runModeCfg.classList.toggle('hidden', mode === 0);
     this.updateModeDisplay();
@@ -525,7 +652,8 @@ export class ClimbTimerApp {
     const modeDisp = document.getElementById('modeDisplay');
     if (modeDisp) modeDisp.textContent = modes[this.currentMode] || '--';
 
-    document.body.className = `mode-${['speed', 'boulder', 'lead', 'clock'][this.currentMode]}`;
+    const modeClass = ['speed', 'boulder', 'lead', 'clock'][this.currentMode] || 'speed';
+    document.body.className = `mode-${modeClass}`;
 
     document.querySelectorAll('.mode-speed-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 0));
     document.querySelectorAll('.mode-boulder-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 1));
