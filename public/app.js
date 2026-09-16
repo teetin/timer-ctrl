@@ -16,6 +16,7 @@ export class ClimbTimerApp {
       M: 0,   // Mode
       C: 60,  // Climb Time
       T: 15,  // Transition Time
+      N: 15,  // Initial Warning / Prep Time
       V: 100, // Volume
       Q: 0,   // Run Mode
       X: 0,   // Tenths
@@ -25,6 +26,7 @@ export class ClimbTimerApp {
       K: 0,   // Maint Mode
       A: 0,   // Assigned Lane
       D: 1,   // Radio Mode
+      circ_seq: "30/15,30/15",
       theme: 0,
       console: false,
     };
@@ -104,7 +106,7 @@ export class ClimbTimerApp {
     const immediateConfigs = {
       'cfg-climb': 'C',
       'cfg-trans': 'T',
-      'cfg-runmode': 'Q',
+      'cfg-init-trans': 'N',
       'cfg-vol': 'V',
       'cfg-symbols': 'Y',
       'cfg-tenths': 'X',
@@ -125,8 +127,21 @@ export class ClimbTimerApp {
            if (volDisp) volDisp.textContent = val;
         }
         this.updateTimerPreview();
+        this.renderFlowVisualizer();
       });
     });
+
+    document.getElementById('cfg-autoloop')?.addEventListener('change', (e) => {
+      const val = e.target.checked ? 1 : 0;
+      this.config.Q = val;
+      this.currentRunMode = val;
+      this.sendConfig('Q', val);
+      this.updateRunModeDisplay();
+      this.renderFlowVisualizer();
+    });
+
+    document.getElementById('btnAddStep')?.addEventListener('click', () => this.addCircuitStep());
+    document.getElementById('btnResetSteps')?.addEventListener('click', () => this.resetCircuitSteps());
 
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
@@ -211,6 +226,7 @@ export class ClimbTimerApp {
 
       this.sendTerminalCommand('G');
       this.sendTerminalCommand('S');
+      this.sendTerminalCommand('circ_seq');
     } catch (error) {
       this.terminal?.print('Connection failed: ' + error.message, 'error');
     }
@@ -241,6 +257,16 @@ export class ClimbTimerApp {
   handleLine(line) {
     if (!line) return;
     this.terminal?.print('Recv: ' + line, 'received');
+
+    if (line.startsWith('circ_seq') || line.startsWith('OK circ_seq')) {
+      const seq = line.replace(/^(OK\s+)?circ_seq\s*/, '').trim();
+      if (seq) {
+        this.config.circ_seq = seq;
+        this.renderCircuitStepsTable();
+        this.renderFlowVisualizer();
+      }
+      return;
+    }
 
     const cmd = line[0].toUpperCase();
     const body = line.substring(1).trim();
@@ -349,21 +375,23 @@ export class ClimbTimerApp {
       8: 'W', // CFG_TYPE_AUDIO_SQUARE
       9: 'V', // CFG_TYPE_AUDIO_VOL
       12: 'K', // CFG_TYPE_MAINT_EN
-      13: 'A'  // CFG_TYPE_LANE_ASSIGN
+      13: 'A', // CFG_TYPE_LANE_ASSIGN
+      18: 'N'  // CFG_TYPE_INIT_TRANS_MS
     };
 
     const key = mapping[type];
     if (key) {
       let finalVal = val;
-      if (key === 'C' || key === 'T') finalVal = Math.floor(val / 1000);
+      if (key === 'C' || key === 'T' || key === 'N') finalVal = Math.floor(val / 1000);
       this.config[key] = finalVal;
       if (key === 'Q') this.currentRunMode = finalVal;
 
       this.syncFormWithConfig();
       this.updateTimerPreview();
       this.updateSymbolUI();
+      this.renderFlowVisualizer();
 
-      if (key === 'C' || key === 'T') {
+      if (key === 'C' || key === 'T' || key === 'N') {
         this.updateTimerTotal(this.systemState);
         this.updateTimerTextFromMs();
       }
@@ -590,8 +618,8 @@ export class ClimbTimerApp {
     const mapping = {
         'cfg-climb': 'C',
         'cfg-trans': 'T',
+        'cfg-init-trans': 'N',
         'cfg-mode': 'M',
-        'cfg-runmode': 'Q',
         'cfg-vol': 'V',
         'cfg-symbols': 'Y',
         'cfg-tenths': 'X',
@@ -609,9 +637,14 @@ export class ClimbTimerApp {
         else el.value = val;
     });
 
+    const autoloopEl = document.getElementById('cfg-autoloop');
+    if (autoloopEl) autoloopEl.checked = !!this.config.Q;
+
     const volDisp = document.getElementById('volDisplay');
     if (volDisp) volDisp.textContent = this.config.V;
     this.updateModeUI(this.config.M);
+    this.renderCircuitStepsTable();
+    this.renderFlowVisualizer();
   }
 
 
@@ -628,6 +661,13 @@ export class ClimbTimerApp {
     const input = cmd || document.getElementById('terminalInput').value.trim();
     if (!input) return;
 
+    if (!this.transport || !this.transport.isConnected()) {
+      if (!cmd) {
+        this.terminal?.print('Not connected', 'error');
+      }
+      return;
+    }
+
     try {
       await this.transport.send(input);
       this.terminal?.print('Sent: ' + input, 'sent');
@@ -642,17 +682,29 @@ export class ClimbTimerApp {
 
   updateModeUI(mode) {
     this.config.M = mode;
+    this.currentMode = mode;
+    if (mode === 2) {
+      this.config.Q = 0;
+      const autoLoopCb = document.getElementById('cfg-autoloop');
+      if (autoLoopCb) autoLoopCb.checked = false;
+    }
     const runModeCfg = document.getElementById('runModeConfig');
-    if (runModeCfg) runModeCfg.classList.toggle('hidden', mode === 0);
+    if (runModeCfg) runModeCfg.classList.toggle('hidden', mode === 0 || mode === 2);
+
+    const circStepsSec = document.getElementById('circuitStepsSection');
+    if (circStepsSec) circStepsSec.classList.toggle('hidden', mode !== 4);
+
     this.updateModeDisplay();
+    this.updateRunModeDisplay();
+    this.renderFlowVisualizer();
   }
 
   updateModeDisplay() {
-    const modes = ['IFSC SPEED', 'BOULDER', 'LEAD', 'CLOCK'];
+    const modes = ['IFSC SPEED', 'BOULDER', 'LEAD', 'CLOCK', 'CIRCUIT'];
     const modeDisp = document.getElementById('modeDisplay');
     if (modeDisp) modeDisp.textContent = modes[this.currentMode] || '--';
 
-    const modeClass = ['speed', 'boulder', 'lead', 'clock'][this.currentMode] || 'speed';
+    const modeClass = ['speed', 'boulder', 'lead', 'clock', 'circuit'][this.currentMode] || 'speed';
     document.body.className = `mode-${modeClass}`;
 
     document.querySelectorAll('.mode-speed-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 0));
@@ -662,9 +714,8 @@ export class ClimbTimerApp {
   }
 
   updateRunModeDisplay() {
-    const runModes = ['AUTO-LOOP', 'REFEREE'];
     const runModeDisp = document.getElementById('runModeDisplay');
-    if (runModeDisp) runModeDisp.textContent = runModes[this.currentRunMode] || '--';
+    if (runModeDisp) runModeDisp.textContent = this.config.Q ? 'LOOP ON' : 'OFF';
   }
 
   updateSymbolUI() {
@@ -728,6 +779,276 @@ export class ClimbTimerApp {
         const el = document.getElementById(id);
         if (el) el.disabled = !enabled;
     });
+  }
+
+  // ============================================================================
+  // Circuit Steps & Flow Visualizer Helpers
+  // ============================================================================
+
+  parseCircSeqStr(str) {
+    if (!str) return [{ climb: 30, rest: 15 }];
+    const steps = [];
+    const parts = str.split(',');
+    parts.forEach(p => {
+      const pair = p.split('/');
+      if (pair.length === 2) {
+        const c = parseInt(pair[0], 10) || 30;
+        const r = parseInt(pair[1], 10) || 15;
+        steps.push({ climb: c, rest: r });
+      }
+    });
+    return steps.length > 0 ? steps : [{ climb: 30, rest: 15 }];
+  }
+
+  buildCircSeqStr(steps) {
+    return steps.map(s => `${s.climb}/${s.rest}`).join(',');
+  }
+
+  renderCircuitStepsTable() {
+    const tbody = document.getElementById('circuitStepsTableBody');
+    if (!tbody) return;
+
+    const steps = this.parseCircSeqStr(this.config.circ_seq);
+    tbody.innerHTML = '';
+
+    steps.forEach((step, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>Step ${idx + 1}</strong></td>
+        <td><input type="number" class="step-climb-input" data-idx="${idx}" min="1" max="3600" value="${step.climb}" /></td>
+        <td><input type="number" class="step-rest-input" data-idx="${idx}" min="0" max="3600" value="${step.rest}" /></td>
+        <td><button type="button" class="btn btn-sm btn-danger btn-remove-step" data-idx="${idx}">🗑️ Remove</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.step-climb-input, .step-rest-input').forEach(input => {
+      input.addEventListener('change', () => this.updateCircuitStepsFromUI());
+    });
+
+    tbody.querySelectorAll('.btn-remove-step').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        this.removeCircuitStep(idx);
+      });
+    });
+
+    const rawEl = document.getElementById('circSeqRaw');
+    if (rawEl) rawEl.textContent = this.config.circ_seq;
+  }
+
+  updateCircuitStepsFromUI() {
+    const tbody = document.getElementById('circuitStepsTableBody');
+    if (!tbody) return;
+
+    const climbInputs = tbody.querySelectorAll('.step-climb-input');
+    const restInputs = tbody.querySelectorAll('.step-rest-input');
+
+    const steps = [];
+    for (let i = 0; i < climbInputs.length; i++) {
+      const c = parseInt(climbInputs[i].value, 10) || 30;
+      const r = parseInt(restInputs[i].value, 10) || 0;
+      steps.push({ climb: c, rest: r });
+    }
+
+    const seq = this.buildCircSeqStr(steps);
+    this.config.circ_seq = seq;
+
+    const rawEl = document.getElementById('circSeqRaw');
+    if (rawEl) rawEl.textContent = seq;
+
+    this.sendTerminalCommand('circ_seq ' + seq);
+    this.renderFlowVisualizer();
+  }
+
+  addCircuitStep() {
+    const steps = this.parseCircSeqStr(this.config.circ_seq);
+    steps.push({ climb: 30, rest: 15 });
+    const seq = this.buildCircSeqStr(steps);
+    this.config.circ_seq = seq;
+    this.sendTerminalCommand('circ_seq ' + seq);
+    this.renderCircuitStepsTable();
+    this.renderFlowVisualizer();
+  }
+
+  removeCircuitStep(idx) {
+    let steps = this.parseCircSeqStr(this.config.circ_seq);
+    if (steps.length <= 1) {
+      steps = [{ climb: 30, rest: 15 }];
+    } else {
+      steps.splice(idx, 1);
+    }
+    const seq = this.buildCircSeqStr(steps);
+    this.config.circ_seq = seq;
+    this.sendTerminalCommand('circ_seq ' + seq);
+    this.renderCircuitStepsTable();
+    this.renderFlowVisualizer();
+  }
+
+  resetCircuitSteps() {
+    const seq = '30/15,30/15';
+    this.config.circ_seq = seq;
+    this.sendTerminalCommand('circ_seq ' + seq);
+    this.renderCircuitStepsTable();
+    this.renderFlowVisualizer();
+  }
+
+  renderFlowVisualizer() {
+    const container = document.getElementById('flowVisualizer');
+    if (!container) return;
+
+    const mode = parseInt(this.config.M, 10);
+    const initTrans = parseInt(this.config.N, 10) || (mode === 2 ? 40 : 0);
+    const climbTime = parseInt(this.config.C, 10) || (mode === 2 ? 360 : 60);
+    const transTime = parseInt(this.config.T, 10) || 15;
+    const autoLoop = (mode === 2) ? false : !!parseInt(this.config.Q, 10);
+
+    let html = '<div class="flow-chain flow-chain-grid">';
+
+    if (mode === 4) { // CIRCUIT
+      if (initTrans > 0) {
+        html += `
+          <div class="flow-card flow-prep">
+            <span class="flow-card-badge">Once</span>
+            <span class="flow-card-title">Init Prep</span>
+            <span class="flow-card-time">${initTrans}s</span>
+          </div>
+          <div class="flow-arrow">──►</div>
+        `;
+      }
+      const steps = this.parseCircSeqStr(this.config.circ_seq);
+      steps.forEach((step, idx) => {
+        html += `
+          <div class="flow-step-block">
+            <div class="flow-card flow-climb">
+              <span class="flow-card-badge">Step ${idx + 1}</span>
+              <span class="flow-card-title">Climb</span>
+              <span class="flow-card-time">${step.climb}s</span>
+            </div>
+            <div class="flow-arrow">──►</div>
+            <div class="flow-card flow-rest">
+              <span class="flow-card-badge">Step ${idx + 1}</span>
+              <span class="flow-card-title">Rest</span>
+              <span class="flow-card-time">${step.rest}s</span>
+            </div>
+          </div>
+        `;
+        if (idx < steps.length - 1) {
+          html += `<div class="flow-arrow">──►</div>`;
+        }
+      });
+
+      if (autoLoop) {
+        html += `
+          <div class="flow-arrow">──►</div>
+          <div class="flow-card flow-loop">
+            <span class="flow-card-badge">Loop</span>
+            <span class="flow-card-title">🔄 Step 1 Climb</span>
+            <span class="flow-card-time">Repeat</span>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="flow-arrow">──►</div>
+          <div class="flow-card flow-stop">
+            <span class="flow-card-badge">Finish</span>
+            <span class="flow-card-title">⏹️ DONE</span>
+            <span class="flow-card-time">DONE</span>
+          </div>
+        `;
+      }
+    } else if (mode === 1 || mode === 2) { // BOULDER / LEAD
+      const prepLabel = (mode === 2) ? 'Prep Time' : 'Init Prep';
+      if (initTrans > 0) {
+        html += `
+          <div class="flow-card flow-prep">
+            <span class="flow-card-badge">Once</span>
+            <span class="flow-card-title">${prepLabel}</span>
+            <span class="flow-card-time">${initTrans}s</span>
+          </div>
+          <div class="flow-arrow">──►</div>
+        `;
+      }
+      html += `
+        <div class="flow-card flow-climb">
+          <span class="flow-card-badge">Climb</span>
+          <span class="flow-card-title">Climb Time</span>
+          <span class="flow-card-time">${climbTime}s</span>
+        </div>
+      `;
+      if (autoLoop) {
+        html += `
+          <div class="flow-arrow">──►</div>
+          <div class="flow-card flow-rest">
+            <span class="flow-card-badge">Rest</span>
+            <span class="flow-card-title">Rest / Trans</span>
+            <span class="flow-card-time">${transTime}s</span>
+          </div>
+          <div class="flow-arrow">──►</div>
+          <div class="flow-card flow-loop">
+            <span class="flow-card-badge">Loop</span>
+            <span class="flow-card-title">🔄 Climb</span>
+            <span class="flow-card-time">Repeat</span>
+          </div>
+        `;
+      } else {
+        if (transTime > 0 && mode !== 2) {
+          html += `
+            <div class="flow-arrow">──►</div>
+            <div class="flow-card flow-rest">
+              <span class="flow-card-badge">Rest</span>
+              <span class="flow-card-title">Trans</span>
+              <span class="flow-card-time">${transTime}s</span>
+            </div>
+          `;
+        }
+        html += `
+          <div class="flow-arrow">──►</div>
+          <div class="flow-card flow-stop">
+            <span class="flow-card-badge">Finish</span>
+            <span class="flow-card-title">⏹️ DONE</span>
+            <span class="flow-card-time">DONE</span>
+          </div>
+        `;
+      }
+    } else if (mode === 0) { // SPEED
+      html += `
+        <div class="flow-card flow-prep">
+          <span class="flow-card-badge">Pad</span>
+          <span class="flow-card-title">On Pad</span>
+          <span class="flow-card-time">READY</span>
+        </div>
+        <div class="flow-arrow">──►</div>
+        <div class="flow-card flow-rest">
+          <span class="flow-card-badge">Starter</span>
+          <span class="flow-card-title">Beep 1-2-3</span>
+          <span class="flow-card-time">3.0s</span>
+        </div>
+        <div class="flow-arrow">──►</div>
+        <div class="flow-card flow-climb">
+          <span class="flow-card-badge">Racing</span>
+          <span class="flow-card-title">Speed Climb</span>
+          <span class="flow-card-time">0.000s</span>
+        </div>
+        <div class="flow-arrow">──►</div>
+        <div class="flow-card flow-stop">
+          <span class="flow-card-badge">Finish</span>
+          <span class="flow-card-title">Pad Touch</span>
+          <span class="flow-card-time">WIN</span>
+        </div>
+      `;
+    } else if (mode === 3) { // CLOCK
+      html += `
+        <div class="flow-card flow-climb">
+          <span class="flow-card-badge">Realtime</span>
+          <span class="flow-card-title">System Clock</span>
+          <span class="flow-card-time">24H</span>
+        </div>
+      `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
   }
 }
 

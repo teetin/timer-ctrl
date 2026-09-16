@@ -359,10 +359,193 @@ body {
   margin-bottom: 0;
 }
 
+/* Flow Visualizer & Chain Styles */
+.main-flow-visualizer-section {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.flow-visualizer-container {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.flow-chain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+}
+
+.flow-chain-grid {
+  flex-wrap: wrap;
+  gap: 12px 8px;
+}
+
+.flow-step-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.flow-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 100px;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.flow-card.flow-prep {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.flow-card.flow-climb {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.flow-card.flow-rest {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.flow-card.flow-loop {
+  border-color: var(--accent);
+  background: rgba(138, 43, 226, 0.15);
+}
+
+.flow-card.flow-stop {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.flow-card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.flow-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.flow-card-time {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.flow-arrow {
+  font-size: 1.2rem;
+  color: #64748b;
+  font-weight: bold;
+  user-select: none;
+}
+
+/* Steps Table Styles */
+.steps-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.steps-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.steps-table th, .steps-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.steps-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.steps-table input[type="number"] {
+  width: 90px;
+  padding: 6px;
+  background: #334155;
+  border: 1px solid #475569;
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.steps-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.raw-seq-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+}
+
+.raw-seq-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.raw-seq-val {
+  font-family: 'Courier New', monospace;
+  color: var(--accent);
+  font-weight: 700;
+}
+
 /* Configuration Panel */
 .config-section {
-  max-height: 500px;
-  overflow-y: auto;
   margin-bottom: 20px;
 }
 
@@ -566,7 +749,7 @@ body.mode-clock .mode-boulder-only {
   flex: 1;
 }
 
-/* Responsive */
+/* Responsive & Mobile Optimization */
 @media (max-width: 1024px) {
   .connection-panel {
     flex-wrap: wrap;
@@ -574,6 +757,57 @@ body.mode-clock .mode-boulder-only {
 
   .main-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .flow-visualizer-container {
+    padding: 8px 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .flow-card {
+    min-width: 85px;
+    padding: 8px 10px;
+  }
+
+  .flow-card-title {
+    font-size: 0.78rem;
+  }
+
+  .flow-card-time {
+    font-size: 0.9rem;
+  }
+
+  .flow-arrow {
+    font-size: 1rem;
+  }
+
+  .steps-table th, .steps-table td {
+    padding: 6px 6px;
+    font-size: 0.85rem;
+  }
+
+  .steps-table input[type="number"] {
+    width: 68px;
+    font-size: 1rem;
+    padding: 6px 4px;
+  }
+
+  .btn-sm {
+    padding: 8px 12px;
+    min-height: 40px;
+    font-size: 0.85rem;
+  }
+
+  .steps-actions {
+    flex-wrap: wrap;
+  }
+
+  .raw-seq-info {
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    word-break: break-all;
   }
 }
 
