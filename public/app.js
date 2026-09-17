@@ -170,6 +170,10 @@ export class ClimbTimerApp {
       }
     });
 
+    document.getElementById('btn-sync-time')?.addEventListener('click', () => {
+      this.syncDeviceTime();
+    });
+
     document.getElementById('btn-set-tz')?.addEventListener('click', () => {
       const val = document.getElementById('cfg-tz-custom')?.value.trim();
       if (val) {
@@ -783,6 +787,25 @@ export class ClimbTimerApp {
     if (resetBtn) resetBtn.textContent = `${this.config.Y ? '⟲ ' : ''}RESET`;
   }
 
+  async syncDeviceTime() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const timeStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+    if (this.transport instanceof HTTPTransport) {
+      try {
+        const resp = await fetch(`${this.transport.baseUrl}/time?set=${encodeURIComponent(timeStr)}`);
+        if (resp.ok) {
+          this.terminal?.print(`Clock synced with browser: ${timeStr}`, 'success');
+          return;
+        }
+      } catch (e) {
+        // Fallback to sending command
+      }
+    }
+    await this.sendTerminalCommand(`TIME ${timeStr}`);
+  }
+
   updateTimerPreview() {
     const transPrev = document.getElementById('transPreview');
     if (transPrev) transPrev.textContent = `${this.config.T}s`;
@@ -791,8 +814,8 @@ export class ClimbTimerApp {
     const statePrev = document.getElementById('statePreview');
     if (statePrev) statePrev.textContent = this.getDisplayStateLabel();
 
-    const tonePrev = document.getElementById('tonePreview');
-    if (tonePrev) tonePrev.textContent = this.config.B ? 'BEEPS ON' : 'BEEPS OFF';
+    const beepsPrev = document.getElementById('beepsPreview');
+    if (beepsPrev) beepsPrev.textContent = this.config.B ? 'ON' : 'OFF';
     const wavePrev = document.getElementById('wavePreview');
     if (wavePrev) wavePrev.textContent = this.config.W ? 'SQUARE' : 'SINE';
 

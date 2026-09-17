@@ -64,8 +64,8 @@
                         </div>
                         <div class="config-preview" id="configPreview">
                             <div class="preview-chip">
-                                <span class="preview-label">TONE</span>
-                                <span class="preview-value" id="tonePreview">--</span>
+                                <span class="preview-label">BEEPS</span>
+                                <span class="preview-value" id="beepsPreview">--</span>
                             </div>
                             <div class="preview-chip">
                                 <span class="preview-label">WAVE</span>
@@ -259,6 +259,11 @@
                             <label>POSIX Timezone String</label>
                             <input type="text" id="cfg-tz-custom" value="EET-2EEST,M3.5.0/3,M10.5.0/4" placeholder="e.g. EET-2EEST,M3.5.0/3,M10.5.0/4" />
                             <button type="button" id="btn-set-tz" class="btn btn-sm btn-secondary" style="margin-top: 6px;">Set Timezone</button>
+
+                            <label style="margin-top: 16px;">Device Real-Time Clock (RTC)</label>
+                            <div style="display: flex; gap: 8px; margin-top: 4px;">
+                                <button type="button" id="btn-sync-time" class="btn btn-sm btn-primary" style="flex: 1;">🕒 Sync System Time with Browser</button>
+                            </div>
                         </div>
                     </details>
                 </div>
