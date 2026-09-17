@@ -31,15 +31,18 @@ Update system settings. Multiple keys can be updated in one command.
 
 | Key | Description | Unit |
 | :--- | :--- | :--- |
-| `M` | Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock) | ID |
+| `M` | Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock, 4:Circuit) | ID |
 | `C` | Climb Duration | Seconds |
 | `T` | Transition/Rest Duration | Seconds |
+| `N` | Initial Warning / Prep Duration | Seconds |
 | `V` | Beeper Volume | 0-100 |
-| `Q` | Run Mode (0:Quals, 1:Finals) | ID |
+| `Q` | Enable Auto-Loop (0:Off, 1:On) | Bool |
 | `X` | Show Tenths (0:Off, 1:On) | Bool |
 | `Y` | Use Symbols (0:Off, 1:On) | Bool |
-| `B` | Beeper Style (0:Prague, 1:Innsbruck, 2:Japan) | ID |
+| `B` | Countdown Beeps (0:Off, 1:On) | Bool |
 | `W` | Waveform (0:Sine, 1:Square) | Bool |
+| `H` | Lane A Enable (0:Disabled, 1:Enabled) | Bool |
+| `J` | Lane B Enable (0:Disabled, 1:Enabled) | Bool |
 | `K` | Maintenance Mode (0:Off, 1:On) | Bool |
 | `A` | Assigned Lane (0:Both, 1:A, 2:B) | ID |
 | `D` | Radio Mode (0:WiFi, 1:BLE) [Getter Only] | ID |
@@ -57,6 +60,9 @@ Retrieve one or more configuration values. Providing no keys returns the full co
 ### 4. System Commands
 - **`S`**: Status Query. Response: `S I<uuid> M<mode> Q<runmode>`
 - **`R`**: Reset (Abort current race). Response: `R OK`
+- **`RADIO [mode]`**: Set Radio Mode (`WIFI` or `BLE`). Response: `OK RADIO <mode>`
+- **`TZ [tz_str]`**: Get/Set POSIX Timezone string. Response: `OK TZ <tz_str>`
+- **`circ_seq [seq_str]`**: Get/Set Circuit Training sequence string (e.g. `30/15,30/15`). Response: `OK circ_seq <seq_str>`
 - **`!`**: Reboot Hardware. Response: `! OK`
 
 ---
