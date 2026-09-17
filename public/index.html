@@ -179,12 +179,9 @@
                     <details>
                         <summary>Audio & Display</summary>
                         <div class="config-group">
-                            <label>Beeper Style</label>
-                            <select id="cfg-beep-style">
-                                <option value="0">IFSC Prague</option>
-                                <option value="1">IFSC Innsbruck</option>
-                                <option value="2">JMSCA Japan</option>
-                            </select>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px;">
+                                <input type="checkbox" id="cfg-countdown" checked /> Countdown Beeps
+                            </label>
 
                             <label>Audio Waveform</label>
                             <select id="cfg-waveform">
@@ -235,6 +232,33 @@
                                 <option value="1">Lane A (Left)</option>
                                 <option value="2">Lane B (Right)</option>
                             </select>
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>System & Timezone</summary>
+                        <div class="config-group">
+                            <label>Radio Mode (Communication)</label>
+                            <select id="cfg-radio-mode">
+                                <option value="WIFI">Wi-Fi Mode</option>
+                                <option value="BLE">Bluetooth Mode (BLE)</option>
+                            </select>
+
+                            <label>Timezone Presets</label>
+                            <select id="cfg-tz-preset">
+                                <option value="UTC0">UTC</option>
+                                <option value="CET-1CEST,M3.5.0,M10.5.0/3">Europe/Central (CET/CEST)</option>
+                                <option value="EET-2EEST,M3.5.0/3,M10.5.0/4" selected>Europe/Helsinki (EET/EEST)</option>
+                                <option value="EST5EDT,M3.2.0,M11.1.0">US Eastern (EST/EDT)</option>
+                                <option value="CST6CDT,M3.2.0,M11.1.0">US Central (CST/CDT)</option>
+                                <option value="PST8PDT,M3.2.0,M11.1.0">US Pacific (PST/PDT)</option>
+                                <option value="JST-9">Asia/Tokyo (JST)</option>
+                                <option value="custom">Custom POSIX String...</option>
+                            </select>
+
+                            <label>POSIX Timezone String</label>
+                            <input type="text" id="cfg-tz-custom" value="EET-2EEST,M3.5.0/3,M10.5.0/4" placeholder="e.g. EET-2EEST,M3.5.0/3,M10.5.0/4" />
+                            <button type="button" id="btn-set-tz" class="btn btn-sm btn-secondary" style="margin-top: 6px;">Set Timezone</button>
                         </div>
                     </details>
                 </div>

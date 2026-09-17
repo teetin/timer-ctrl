@@ -21,11 +21,14 @@ export class ClimbTimerApp {
       Q: 0,   // Run Mode
       X: 0,   // Tenths
       Y: 0,   // Symbols
-      B: 0,   // Beeper Style
+      B: 1,   // Countdown Beeps (0: Off, 1: On)
       W: 0,   // Waveform
       K: 0,   // Maint Mode
       A: 0,   // Assigned Lane
+      H: 1,   // Lane A Enable
+      J: 1,   // Lane B Enable
       D: 1,   // Radio Mode
+      tz: "EET-2EEST,M3.5.0/3,M10.5.0/4",
       circ_seq: "30/15,30/15",
       theme: 0,
       console: false,
@@ -91,8 +94,8 @@ export class ClimbTimerApp {
     document.getElementById('btn-abort')?.addEventListener('click', () => this.sendEvent(8));
     document.getElementById('btn-finish')?.addEventListener('click', () => this.sendEvent(7));
 
-    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.sendEvent(7, 'L1'));
-    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.sendEvent(7, 'L2'));
+    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.sendEvent(29));
+    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.sendEvent(30));
     document.getElementById('btn-fall-a')?.addEventListener('click', () => this.sendEvent(25, 'L1 S10'));
     document.getElementById('btn-fall-b')?.addEventListener('click', () => this.sendEvent(25, 'L2 S10'));
 
@@ -112,7 +115,9 @@ export class ClimbTimerApp {
       'cfg-tenths': 'X',
       'cfg-maintenance': 'K',
       'cfg-assigned-lane': 'A',
-      'cfg-beep-style': 'B',
+      'cfg-countdown': 'B',
+      'cfg-lane-a': 'H',
+      'cfg-lane-b': 'J',
       'cfg-waveform': 'W'
     };
 
@@ -148,6 +153,29 @@ export class ClimbTimerApp {
       this.config.M = mode;
       this.sendConfig('M', mode);
       this.updateModeUI(mode);
+    });
+
+    document.getElementById('cfg-radio-mode')?.addEventListener('change', (e) => {
+      const modeStr = e.target.value;
+      this.sendTerminalCommand(`RADIO ${modeStr}`);
+    });
+
+    document.getElementById('cfg-tz-preset')?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      const customInput = document.getElementById('cfg-tz-custom');
+      if (val !== 'custom') {
+        if (customInput) customInput.value = val;
+        this.config.tz = val;
+        this.sendTerminalCommand(`TZ ${val}`);
+      }
+    });
+
+    document.getElementById('btn-set-tz')?.addEventListener('click', () => {
+      const val = document.getElementById('cfg-tz-custom')?.value.trim();
+      if (val) {
+        this.config.tz = val;
+        this.sendTerminalCommand(`TZ ${val}`);
+      }
     });
 
     document.getElementById('cfg-console')?.addEventListener('change', (e) => {
@@ -268,6 +296,30 @@ export class ClimbTimerApp {
       return;
     }
 
+    if (line.startsWith('TZ ') || line.startsWith('OK TZ ')) {
+      const tzVal = line.replace(/^(OK\s+)?TZ\s*/, '').trim();
+      if (tzVal) {
+        this.config.tz = tzVal;
+        const customInput = document.getElementById('cfg-tz-custom');
+        if (customInput) customInput.value = tzVal;
+        const presetSelect = document.getElementById('cfg-tz-preset');
+        if (presetSelect) {
+          const matchOpt = Array.from(presetSelect.options).find(o => o.value === tzVal);
+          presetSelect.value = matchOpt ? tzVal : 'custom';
+        }
+      }
+      return;
+    }
+
+    if (line.startsWith('RADIO ') || line.startsWith('OK RADIO ')) {
+      const radioVal = line.replace(/^(OK\s+)?RADIO\s*/, '').replace(/—.*/, '').trim();
+      if (radioVal === 'WIFI' || radioVal === 'BLE') {
+        const radioSelect = document.getElementById('cfg-radio-mode');
+        if (radioSelect) radioSelect.value = radioVal;
+      }
+      return;
+    }
+
     const cmd = line[0].toUpperCase();
     const body = line.substring(1).trim();
 
@@ -367,13 +419,15 @@ export class ClimbTimerApp {
     const mapping = {
       1: 'C', // CFG_TYPE_CLIMB_MS
       2: 'T', // CFG_TYPE_TRANS_MS
-      3: 'B', // CFG_TYPE_BEEP_STYLE
+      3: 'B', // CFG_TYPE_COUNTDOWN_BEEPS
       4: 'Q', // CFG_TYPE_RUN_MODE
       5: 'X', // CFG_TYPE_SHOW_TENTHS
       6: 'Y', // CFG_TYPE_USE_SYMBOLS
       7: 'theme', // CFG_TYPE_UI_THEME
       8: 'W', // CFG_TYPE_AUDIO_SQUARE
       9: 'V', // CFG_TYPE_AUDIO_VOL
+      10: 'H', // CFG_TYPE_LANE_A_EN
+      11: 'J', // CFG_TYPE_LANE_B_EN
       12: 'K', // CFG_TYPE_MAINT_EN
       13: 'A', // CFG_TYPE_LANE_ASSIGN
       18: 'N'  // CFG_TYPE_INIT_TRANS_MS
@@ -625,7 +679,9 @@ export class ClimbTimerApp {
         'cfg-tenths': 'X',
         'cfg-maintenance': 'K',
         'cfg-assigned-lane': 'A',
-        'cfg-beep-style': 'B',
+        'cfg-countdown': 'B',
+        'cfg-lane-a': 'H',
+        'cfg-lane-b': 'J',
         'cfg-waveform': 'W'
     };
 
@@ -735,9 +791,8 @@ export class ClimbTimerApp {
     const statePrev = document.getElementById('statePreview');
     if (statePrev) statePrev.textContent = this.getDisplayStateLabel();
 
-    const toneStyles = ['PRAGUE', 'INNSB', 'JAPAN'];
     const tonePrev = document.getElementById('tonePreview');
-    if (tonePrev) tonePrev.textContent = toneStyles[this.config.B] || '--';
+    if (tonePrev) tonePrev.textContent = this.config.B ? 'BEEPS ON' : 'BEEPS OFF';
     const wavePrev = document.getElementById('wavePreview');
     if (wavePrev) wavePrev.textContent = this.config.W ? 'SQUARE' : 'SINE';
 

@@ -55,6 +55,9 @@ Standardized format for BLE and HTTP/SSE:
 | `21` | `PAD_RELEASED` | Sensor released | `N<node_id>` |
 | `24` | `VISUAL_CMD` | Set LED/Display pattern | `L<lane> P<pat> C<hex> S<spd> R<role>` |
 | `25` | `STATE_CHANGE` | Global/Lane state updated | `L<lane> S<state>` |
+| `26` | `CONFIG_UPDATED` | System configuration updated | `K<type> V<val>` |
+| `29` | `REFEREE_JUDGE_A` | Manual Winner call for Lane A | - |
+| `30` | `REFEREE_JUDGE_B` | Manual Winner call for Lane B | - |
 
 ---
 
@@ -65,15 +68,18 @@ Update one or more settings in a single line.
 - **Format:** `C <key><val> [<key><val> ...]`
 - **Response:** `C <key><val> [<key><val> ...]`
 - **Keys:**
-  - `M`: Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock)
+  - `M`: Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock, 4:Circuit)
   - `C`: Climb Time (Seconds)
   - `T`: Transition Time (Seconds)
+  - `N`: Initial Warning / Prep Time (Seconds)
   - `V`: Volume (0-100)
-  - `Q`: Run Mode (0:Quals, 1:Finals)
+  - `Q`: Auto-Loop Enable (0/1)
   - `X`: Show Tenths (0/1)
   - `Y`: Use Symbols (0/1)
-  - `B`: Beeper Style (0:Prague, 1:Innsbruck, 2:Japan)
+  - `B`: Countdown Beeps (0/1)
   - `W`: Waveform (0:Sine, 1:Square)
+  - `H`: Lane A Enable (0/1)
+  - `J`: Lane B Enable (0/1)
   - `K`: Maint Mode (0/1)
   - `A`: Assigned Lane (0:Both, 1:A, 2:B)
 - **Example:** `C M1 C360 T15` -> `C M1 C360 T15`
