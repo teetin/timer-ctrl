@@ -996,6 +996,9 @@ export class ClimbTimerApp {
       }
       const steps = this.parseCircSeqStr(this.config.circ_seq);
       steps.forEach((step, idx) => {
+        const isLastStep = idx === steps.length - 1;
+        const showRest = autoLoop || !isLastStep;
+
         html += `
           <div class="flow-step-block">
             <div class="flow-card flow-climb">
@@ -1003,14 +1006,19 @@ export class ClimbTimerApp {
               <span class="flow-card-title">Climb</span>
               <span class="flow-card-time">${step.climb}s</span>
             </div>
+        `;
+        if (showRest) {
+          html += `
             <div class="flow-arrow">──►</div>
             <div class="flow-card flow-rest">
               <span class="flow-card-badge">Step ${idx + 1}</span>
               <span class="flow-card-title">Rest</span>
               <span class="flow-card-time">${step.rest}s</span>
             </div>
-          </div>
-        `;
+          `;
+        }
+        html += `</div>`;
+
         if (idx < steps.length - 1) {
           html += `<div class="flow-arrow">──►</div>`;
         }
@@ -1070,16 +1078,6 @@ export class ClimbTimerApp {
           </div>
         `;
       } else {
-        if (transTime > 0 && mode !== 2) {
-          html += `
-            <div class="flow-arrow">──►</div>
-            <div class="flow-card flow-rest">
-              <span class="flow-card-badge">Rest</span>
-              <span class="flow-card-title">Trans</span>
-              <span class="flow-card-time">${transTime}s</span>
-            </div>
-          `;
-        }
         html += `
           <div class="flow-arrow">──►</div>
           <div class="flow-card flow-stop">
