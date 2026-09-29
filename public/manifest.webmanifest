@@ -1,0 +1,25 @@
+{
+  "name": "T2Climb Timer Control",
+  "short_name": "T2Climb",
+  "description": "Control and monitor T2Climb timers over BLE or HTTP.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#8A2BE2",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["utilities", "sports"],
+  "screenshots": []
+}
