@@ -102,7 +102,10 @@ export class ClimbTimerApp {
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
     document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
-      this.config.theme = parseInt(e.target.value, 10);
+      const val = parseInt(e.target.value, 10);
+      this.config.theme = val;
+      this.config.U = val;
+      this.sendConfig('U', val);
       this.applyTheme();
     });
 
@@ -157,7 +160,8 @@ export class ClimbTimerApp {
 
     document.getElementById('cfg-radio-mode')?.addEventListener('change', (e) => {
       const modeStr = e.target.value;
-      this.sendTerminalCommand(`RADIO ${modeStr}`);
+      const rdoVal = modeStr === 'BLE' ? '1' : '0';
+      this.sendTerminalCommand(`RDO ${rdoVal}`);
     });
 
     document.getElementById('cfg-tz-preset')?.addEventListener('change', (e) => {
@@ -258,7 +262,9 @@ export class ClimbTimerApp {
 
       this.sendTerminalCommand('G');
       this.sendTerminalCommand('S');
-      this.sendTerminalCommand('circ_seq');
+      this.sendTerminalCommand('CS');
+      this.sendTerminalCommand('TME');
+      this.sendTerminalCommand('RDO');
     } catch (error) {
       this.terminal?.print('Connection failed: ' + error.message, 'error');
     }
@@ -300,6 +306,44 @@ export class ClimbTimerApp {
       return;
     }
 
+    if (line.startsWith('CS ') || line.startsWith('OK CS ')) {
+      const body = line.replace(/^(OK\s+)?CS\s*/, '').trim();
+      const parts = body.split(/\s+/);
+      if (parts.length === 1) {
+        const count = parseInt(parts[0], 10);
+        if (!isNaN(count)) {
+          this.circuitStepsCount = count;
+          this.circuitSteps = [];
+          for (let i = 0; i < count; i++) {
+            this.sendTerminalCommand(`CS ${i}`);
+          }
+        }
+      } else if (parts.length >= 3) {
+        const idx = parseInt(parts[0], 10);
+        const climb = parseInt(parts[1], 10);
+        const rest = parseInt(parts[2], 10);
+
+        if (!isNaN(idx) && !isNaN(climb) && !isNaN(rest)) {
+          if (!this.circuitSteps) this.circuitSteps = [];
+          if (climb === 0 && rest === 0) {
+            this.circuitSteps.splice(idx, 1);
+          } else {
+            this.circuitSteps[idx] = { climb, rest };
+          }
+          this.config.circ_seq = this.buildCircSeqStr(this.circuitSteps);
+          this.renderCircuitStepsTable();
+          this.renderFlowVisualizer();
+        }
+      }
+      return;
+    }
+
+    if (line.startsWith('TME ') || line.startsWith('OK TME ')) {
+      const timeVal = line.replace(/^(OK\s+)?TME\s*/, '').trim();
+      this.terminal?.print(`Device Time: ${timeVal}`, 'info');
+      return;
+    }
+
     if (line.startsWith('TZ ') || line.startsWith('OK TZ ')) {
       const tzVal = line.replace(/^(OK\s+)?TZ\s*/, '').trim();
       if (tzVal) {
@@ -315,11 +359,11 @@ export class ClimbTimerApp {
       return;
     }
 
-    if (line.startsWith('RADIO ') || line.startsWith('OK RADIO ')) {
-      const radioVal = line.replace(/^(OK\s+)?RADIO\s*/, '').replace(/—.*/, '').trim();
-      if (radioVal === 'WIFI' || radioVal === 'BLE') {
-        const radioSelect = document.getElementById('cfg-radio-mode');
-        if (radioSelect) radioSelect.value = radioVal;
+    if (line.startsWith('RDO ') || line.startsWith('OK RDO ') || line.startsWith('RADIO ') || line.startsWith('OK RADIO ')) {
+      const radioVal = line.replace(/^(OK\s+)?(RDO|RADIO)\s*/, '').replace(/—.*/, '').trim();
+      const radioSelect = document.getElementById('cfg-radio-mode');
+      if (radioSelect) {
+        radioSelect.value = (radioVal === '1' || radioVal === 'BLE') ? 'BLE' : 'WIFI';
       }
       return;
     }
@@ -427,14 +471,15 @@ export class ClimbTimerApp {
       4: 'Q', // CFG_TYPE_RUN_MODE
       5: 'X', // CFG_TYPE_SHOW_TENTHS
       6: 'Y', // CFG_TYPE_USE_SYMBOLS
-      7: 'theme', // CFG_TYPE_UI_THEME
+      7: 'theme', // CFG_TYPE_UI_THEME (U)
       8: 'W', // CFG_TYPE_AUDIO_SQUARE
       9: 'V', // CFG_TYPE_AUDIO_VOL
       10: 'H', // CFG_TYPE_LANE_A_EN
       11: 'J', // CFG_TYPE_LANE_B_EN
       12: 'K', // CFG_TYPE_MAINT_EN
       13: 'A', // CFG_TYPE_LANE_ASSIGN
-      18: 'N'  // CFG_TYPE_INIT_TRANS_MS
+      18: 'N', // CFG_TYPE_INIT_TRANS_MS
+      19: 'M'  // CFG_TYPE_CLIMB_MODE
     };
 
     const key = mapping[type];
@@ -443,6 +488,11 @@ export class ClimbTimerApp {
       if (key === 'C' || key === 'T' || key === 'N') finalVal = Math.floor(val / 1000);
       this.config[key] = finalVal;
       if (key === 'Q') this.currentRunMode = finalVal;
+      if (key === 'M') this.updateModeUI(finalVal);
+      if (key === 'theme') {
+        this.config.U = finalVal;
+        this.applyTheme();
+      }
 
       this.syncFormWithConfig();
       this.updateTimerPreview();
@@ -467,6 +517,11 @@ export class ClimbTimerApp {
         }
     });
 
+    if (args.U !== undefined) {
+        this.config.theme = args.U;
+        this.config.U = args.U;
+        this.applyTheme();
+    }
     if (args.M !== undefined) {
         this.currentMode = this.config.M;
         this.updateModeDisplay();
@@ -803,7 +858,7 @@ export class ClimbTimerApp {
         // Fallback to sending command
       }
     }
-    await this.sendTerminalCommand(`TIME ${timeStr}`);
+    await this.sendTerminalCommand(`TME ${timeStr}`);
   }
 
   updateTimerPreview() {
@@ -927,6 +982,7 @@ export class ClimbTimerApp {
       const c = parseInt(climbInputs[i].value, 10) || 30;
       const r = parseInt(restInputs[i].value, 10) || 0;
       steps.push({ climb: c, rest: r });
+      this.sendTerminalCommand(`CS ${i} ${c} ${r}`);
     }
 
     const seq = this.buildCircSeqStr(steps);
@@ -935,16 +991,16 @@ export class ClimbTimerApp {
     const rawEl = document.getElementById('circSeqRaw');
     if (rawEl) rawEl.textContent = seq;
 
-    this.sendTerminalCommand('circ_seq ' + seq);
     this.renderFlowVisualizer();
   }
 
   addCircuitStep() {
     const steps = this.parseCircSeqStr(this.config.circ_seq);
+    const newIdx = steps.length;
     steps.push({ climb: 30, rest: 15 });
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
-    this.sendTerminalCommand('circ_seq ' + seq);
+    this.sendTerminalCommand(`CS ${newIdx} 30 15`);
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
@@ -953,20 +1009,23 @@ export class ClimbTimerApp {
     let steps = this.parseCircSeqStr(this.config.circ_seq);
     if (steps.length <= 1) {
       steps = [{ climb: 30, rest: 15 }];
+      this.sendTerminalCommand('CS 0 30 15');
     } else {
       steps.splice(idx, 1);
+      this.sendTerminalCommand(`CS ${idx} 0 0`);
     }
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
-    this.sendTerminalCommand('circ_seq ' + seq);
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
 
   resetCircuitSteps() {
+    this.sendTerminalCommand('CS 0 30 15');
+    this.sendTerminalCommand('CS 1 30 15');
+    this.sendTerminalCommand('CS 2 0 0');
     const seq = '30/15,30/15';
     this.config.circ_seq = seq;
-    this.sendTerminalCommand('circ_seq ' + seq);
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
