@@ -7,6 +7,7 @@ export class BLETransport {
     this.txCharacteristic = null;
     this.onReceiveCallback = null;
     this.disconnectCallbacks = [];
+    this.sendQueue = Promise.resolve();
     this._boundHandleDisconnection = this._handleDisconnection.bind(this);
     this.NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
     this.RX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
@@ -60,11 +61,14 @@ export class BLETransport {
   }
 
   async send(data) {
-    if (!this.rxCharacteristic) throw new Error('Not connected');
-    const encoder = new TextEncoder();
-    // Protocol requires newline termination
-    const d = data.endsWith('\n') ? data : data + '\n';
-    await this.rxCharacteristic.writeValue(encoder.encode(d));
+    const write = this.sendQueue.then(async () => {
+      if (!this.rxCharacteristic) throw new Error('Not connected');
+      const encoder = new TextEncoder();
+      const command = data.endsWith('\n') ? data : data + '\n';
+      await this.rxCharacteristic.writeValue(encoder.encode(command));
+    });
+    this.sendQueue = write.catch(() => {});
+    return write;
   }
 
   onReceive(callback) {

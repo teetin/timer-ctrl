@@ -313,9 +313,15 @@ export class ClimbTimerApp {
         const count = parseInt(parts[0], 10);
         if (!isNaN(count)) {
           this.circuitStepsCount = count;
-          this.circuitSteps = [];
-          for (let i = 0; i < count; i++) {
-            this.sendTerminalCommand(`CS ${i}`);
+          this.circuitSteps = new Array(count);
+          if (count === 0) {
+            this.config.circ_seq = '';
+            this.renderCircuitStepsTable();
+            this.renderFlowVisualizer();
+          } else {
+            for (let i = 0; i < count; i++) {
+              this.sendTerminalCommand(`CS ${i}`);
+            }
           }
         }
       } else if (parts.length >= 3) {
@@ -326,13 +332,21 @@ export class ClimbTimerApp {
         if (!isNaN(idx) && !isNaN(climb) && !isNaN(rest)) {
           if (!this.circuitSteps) this.circuitSteps = [];
           if (climb === 0 && rest === 0) {
-            this.circuitSteps.splice(idx, 1);
+            this.circuitStepsCount = idx;
+            this.circuitSteps.length = idx;
           } else {
+            if (idx >= this.circuitStepsCount) {
+              this.circuitStepsCount = idx + 1;
+              this.circuitSteps.length = this.circuitStepsCount;
+            }
             this.circuitSteps[idx] = { climb, rest };
           }
-          this.config.circ_seq = this.buildCircSeqStr(this.circuitSteps);
-          this.renderCircuitStepsTable();
-          this.renderFlowVisualizer();
+            if (this.circuitSteps.length === this.circuitStepsCount &&
+              this.circuitSteps.every((step, index) => index in this.circuitSteps && step !== undefined)) {
+            this.config.circ_seq = this.buildCircSeqStr(this.circuitSteps);
+            this.renderCircuitStepsTable();
+            this.renderFlowVisualizer();
+          }
         }
       }
       return;
@@ -846,18 +860,6 @@ export class ClimbTimerApp {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const timeStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
-    if (this.transport instanceof HTTPTransport) {
-      try {
-        const resp = await fetch(`${this.transport.baseUrl}/time?set=${encodeURIComponent(timeStr)}`);
-        if (resp.ok) {
-          this.terminal?.print(`Clock synced with browser: ${timeStr}`, 'success');
-          return;
-        }
-      } catch (e) {
-        // Fallback to sending command
-      }
-    }
     await this.sendTerminalCommand(`TME ${timeStr}`);
   }
 
@@ -919,6 +921,7 @@ export class ClimbTimerApp {
   // ============================================================================
 
   parseCircSeqStr(str) {
+    if (str === '') return [];
     if (!str) return [{ climb: 30, rest: 15 }];
     const steps = [];
     const parts = str.split(',');
@@ -996,7 +999,11 @@ export class ClimbTimerApp {
 
   addCircuitStep() {
     const steps = this.parseCircSeqStr(this.config.circ_seq);
-    const newIdx = steps.length;
+    const newIdx = Number.isInteger(this.circuitStepsCount) ? this.circuitStepsCount : steps.length;
+    if (steps.length !== newIdx) {
+      this.sendTerminalCommand(`CS ${newIdx} 30 15`);
+      return;
+    }
     steps.push({ climb: 30, rest: 15 });
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
@@ -1006,14 +1013,9 @@ export class ClimbTimerApp {
   }
 
   removeCircuitStep(idx) {
-    let steps = this.parseCircSeqStr(this.config.circ_seq);
-    if (steps.length <= 1) {
-      steps = [{ climb: 30, rest: 15 }];
-      this.sendTerminalCommand('CS 0 30 15');
-    } else {
-      steps.splice(idx, 1);
-      this.sendTerminalCommand(`CS ${idx} 0 0`);
-    }
+    const steps = this.parseCircSeqStr(this.config.circ_seq);
+    steps.splice(idx, 1);
+    this.sendTerminalCommand(steps.length === 0 ? 'CS -1 0 0' : `CS ${idx} 0 0`);
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
     this.renderCircuitStepsTable();
