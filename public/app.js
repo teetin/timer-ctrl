@@ -944,6 +944,12 @@ export class ClimbTimerApp {
     const tbody = document.getElementById('circuitStepsTableBody');
     if (!tbody) return;
 
+    if (document.activeElement && tbody.contains(document.activeElement)) {
+      const rawEl = document.getElementById('circSeqRaw');
+      if (rawEl) rawEl.textContent = this.config.circ_seq;
+      return;
+    }
+
     const steps = this.parseCircSeqStr(this.config.circ_seq);
     tbody.innerHTML = '';
 
@@ -960,6 +966,7 @@ export class ClimbTimerApp {
 
     tbody.querySelectorAll('.step-climb-input, .step-rest-input').forEach(input => {
       input.addEventListener('change', () => this.updateCircuitStepsFromUI());
+      input.addEventListener('input', () => this.updateCircuitStepsFromUI());
     });
 
     tbody.querySelectorAll('.btn-remove-step').forEach(btn => {
@@ -999,15 +1006,16 @@ export class ClimbTimerApp {
 
   addCircuitStep() {
     const steps = this.parseCircSeqStr(this.config.circ_seq);
+    const lastStep = steps.length > 0 ? steps[steps.length - 1] : { climb: 30, rest: 15 };
     const newIdx = Number.isInteger(this.circuitStepsCount) ? this.circuitStepsCount : steps.length;
     if (steps.length !== newIdx) {
-      this.sendTerminalCommand(`CS ${newIdx} 30 15`);
+      this.sendTerminalCommand(`CS ${newIdx} ${lastStep.climb} ${lastStep.rest}`);
       return;
     }
-    steps.push({ climb: 30, rest: 15 });
+    steps.push({ climb: lastStep.climb, rest: lastStep.rest });
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
-    this.sendTerminalCommand(`CS ${newIdx} 30 15`);
+    this.sendTerminalCommand(`CS ${newIdx} ${lastStep.climb} ${lastStep.rest}`);
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
