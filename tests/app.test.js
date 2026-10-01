@@ -57,6 +57,7 @@ test('addCircuitStep copies climb and rest duration from previous step', () => {
   app.addCircuitStep();
 
   expect(app.config.circ_seq).toBe('45/20,45/20');
+  expect(app.circuitStepsCount).toBe(2);
 });
 
 test('renderCircuitStepsTable does not re-render DOM when input is focused', () => {
@@ -82,13 +83,21 @@ test('renderCircuitStepsTable does not re-render DOM when input is focused', () 
   expect(climbInput.value).toBe('50');
 });
 
-test('removeCircuitStep and resetCircuitSteps update sequence', () => {
+test('removeCircuitStep updates circuitStepsCount, config, and re-renders table', () => {
   const app = new ClimbTimerApp();
   app.config.circ_seq = '30/15,45/20,60/30';
+  app.renderCircuitStepsTable();
+
+  const tbody = document.getElementById('circuitStepsTableBody');
+  expect(tbody.children.length).toBe(3);
 
   app.removeCircuitStep(1);
   expect(app.config.circ_seq).toBe('30/15,60/30');
+  expect(app.circuitStepsCount).toBe(2);
+  expect(tbody.children.length).toBe(2);
 
   app.resetCircuitSteps();
   expect(app.config.circ_seq).toBe('30/15,30/15');
+  expect(app.circuitStepsCount).toBe(2);
+  expect(tbody.children.length).toBe(2);
 });

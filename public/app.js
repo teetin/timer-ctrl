@@ -300,6 +300,8 @@ export class ClimbTimerApp {
       const seq = line.replace(/^(OK\s+)?circ_seq\s*/, '').trim();
       if (seq) {
         this.config.circ_seq = seq;
+        this.circuitSteps = this.parseCircSeqStr(seq);
+        this.circuitStepsCount = this.circuitSteps.length;
         this.renderCircuitStepsTable();
         this.renderFlowVisualizer();
       }
@@ -944,7 +946,7 @@ export class ClimbTimerApp {
     const tbody = document.getElementById('circuitStepsTableBody');
     if (!tbody) return;
 
-    if (document.activeElement && tbody.contains(document.activeElement)) {
+    if (document.activeElement && tbody.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') {
       const rawEl = document.getElementById('circSeqRaw');
       if (rawEl) rawEl.textContent = this.config.circ_seq;
       return;
@@ -997,6 +999,8 @@ export class ClimbTimerApp {
 
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
+    this.circuitSteps = steps;
+    this.circuitStepsCount = steps.length;
 
     const rawEl = document.getElementById('circSeqRaw');
     if (rawEl) rawEl.textContent = seq;
@@ -1007,14 +1011,12 @@ export class ClimbTimerApp {
   addCircuitStep() {
     const steps = this.parseCircSeqStr(this.config.circ_seq);
     const lastStep = steps.length > 0 ? steps[steps.length - 1] : { climb: 30, rest: 15 };
-    const newIdx = Number.isInteger(this.circuitStepsCount) ? this.circuitStepsCount : steps.length;
-    if (steps.length !== newIdx) {
-      this.sendTerminalCommand(`CS ${newIdx} ${lastStep.climb} ${lastStep.rest}`);
-      return;
-    }
+    const newIdx = steps.length;
     steps.push({ climb: lastStep.climb, rest: lastStep.rest });
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
+    this.circuitSteps = steps;
+    this.circuitStepsCount = steps.length;
     this.sendTerminalCommand(`CS ${newIdx} ${lastStep.climb} ${lastStep.rest}`);
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
@@ -1026,6 +1028,8 @@ export class ClimbTimerApp {
     this.sendTerminalCommand(steps.length === 0 ? 'CS -1 0 0' : `CS ${idx} 0 0`);
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
+    this.circuitSteps = steps;
+    this.circuitStepsCount = steps.length;
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
@@ -1036,6 +1040,8 @@ export class ClimbTimerApp {
     this.sendTerminalCommand('CS 2 0 0');
     const seq = '30/15,30/15';
     this.config.circ_seq = seq;
+    this.circuitSteps = [{ climb: 30, rest: 15 }, { climb: 30, rest: 15 }];
+    this.circuitStepsCount = 2;
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
   }
