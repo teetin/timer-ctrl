@@ -30,6 +30,7 @@ export class ClimbTimerApp {
       D: 1, // Radio Mode
       tz: 'EET-2EEST,M3.5.0/3,M10.5.0/4',
       circ_seq: '30/15,30/15',
+      U: 0,
       theme: 0,
       console: false,
     };
@@ -109,7 +110,10 @@ export class ClimbTimerApp {
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
     document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
-      this.config.theme = parseInt(e.target.value, 10);
+      const val = parseInt(e.target.value, 10);
+      this.config.theme = val;
+      this.config.U = val;
+      this.sendConfig('U', val);
       this.applyTheme();
     });
 
@@ -491,13 +495,14 @@ export class ClimbTimerApp {
     const args = this.parseArgs(data.split(/\s+/));
     Object.keys(args).forEach((key) => {
       if (Object.prototype.hasOwnProperty.call(this.config, key)) {
-        // For config, only M and A should potentially be hex if they ever appear there.
-        // But based on doc, M (Mode) in config is ID (Decimal).
-        // Let's stick to what parseArgs returns now.
         this.config[key] = args[key];
       }
     });
 
+    if (args.U !== undefined) {
+      this.config.theme = args.U;
+      this.applyTheme();
+    }
     if (args.M !== undefined) {
       this.currentMode = this.config.M;
       this.updateModeDisplay();
@@ -737,6 +742,7 @@ export class ClimbTimerApp {
       'cfg-lane-a': 'H',
       'cfg-lane-b': 'J',
       'cfg-waveform': 'W',
+      'cfg-theme': 'theme',
     };
 
     Object.keys(mapping).forEach((id) => {
