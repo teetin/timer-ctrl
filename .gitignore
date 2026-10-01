@@ -8,7 +8,6 @@ bun.lockb
 
 # Testing
 coverage/
-tests/
 
 # Editor directories and files
 .vscode/
