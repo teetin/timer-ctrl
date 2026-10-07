@@ -1,6 +1,6 @@
 site_name: T2Climb Timer System Manual
 site_description: Official user manual and documentation for T2Climb timing ecosystem.
-site_url: https://teetin.github.io/timer-ctrl/
+site_url: https://teetin.github.io/timer-ctrl/docs/
 
 docs_dir: public/wiki
 site_dir: public/docs
