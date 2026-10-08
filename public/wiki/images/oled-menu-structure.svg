@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="100%" height="100%" style="background-color: #0f172a; font-family: system-ui, -apple-system, sans-serif;">
+  <!-- Title -->
+  <text x="450" y="40" fill="#f8fafc" font-size="22" font-weight="bold" text-anchor="middle">T2Climb Control Unit - OLED Menu &amp; Display Structure</text>
+  <text x="450" y="65" fill="#94a3b8" font-size="14" text-anchor="middle">Navigate using Rotary Encoder (Rotate to Select / Press to Confirm) &amp; Push Buttons</text>
+
+  <!-- Root Menu Node -->
+  <g transform="translate(350, 100)">
+    <rect x="0" y="0" width="200" height="50" rx="8" fill="#1e293b" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="100" y="22" fill="#f1f5f9" font-size="14" font-weight="bold" text-anchor="middle">MAIN MENU</text>
+    <text x="100" y="38" fill="#a78bfa" font-size="11" text-anchor="middle">System Ready State</text>
+  </g>
+
+  <!-- Connector Lines from Main Menu -->
+  <path d="M 450 150 L 450 180 M 110 180 L 790 180 M 110 180 L 110 210 M 280 180 L 280 210 M 450 180 L 450 210 M 620 180 L 620 210 M 790 180 L 790 210" stroke="#475569" stroke-width="2" fill="none"/>
+
+  <!-- Section 1: Mode Select -->
+  <g transform="translate(30, 210)">
+    <rect x="0" y="0" width="160" height="40" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <text x="80" y="25" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">1. Mode Select</text>
+
+    <path d="M 80 40 L 80 60" stroke="#475569" stroke-width="2"/>
+    <rect x="10" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="82" fill="#e2e8f0" font-size="12">▶ IFSC Speed</text>
+    <text x="20" y="107" fill="#94a3b8" font-size="12">  Boulder Mode</text>
+    <text x="20" y="132" fill="#94a3b8" font-size="12">  Lead Mode</text>
+    <text x="20" y="157" fill="#94a3b8" font-size="12">  Clock / Stopwatch</text>
+    <text x="20" y="182" fill="#94a3b8" font-size="12">  Circuit Training</text>
+  </g>
+
+  <!-- Section 2: Timing Config -->
+  <g transform="translate(200, 210)">
+    <rect x="0" y="0" width="160" height="40" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="80" y="25" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">2. Timing Config</text>
+
+    <path d="M 80 40 L 80 60" stroke="#475569" stroke-width="2"/>
+    <rect x="10" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="82" fill="#e2e8f0" font-size="12">▶ Climb Time: 60s</text>
+    <text x="20" y="107" fill="#94a3b8" font-size="12">  Rest Time: 15s</text>
+    <text x="20" y="132" fill="#94a3b8" font-size="12">  Prep Time: 15s</text>
+    <text x="20" y="157" fill="#94a3b8" font-size="12">  Auto-Loop: [ON]</text>
+    <text x="20" y="182" fill="#94a3b8" font-size="12">  Circuit Steps</text>
+  </g>
+
+  <!-- Section 3: Audio Settings -->
+  <g transform="translate(370, 210)">
+    <rect x="0" y="0" width="160" height="40" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+    <text x="80" y="25" fill="#fbbf24" font-size="13" font-weight="bold" text-anchor="middle">3. Audio Settings</text>
+
+    <path d="M 80 40 L 80 60" stroke="#475569" stroke-width="2"/>
+    <rect x="10" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="82" fill="#e2e8f0" font-size="12">▶ Countdown Beeps</text>
+    <text x="20" y="107" fill="#94a3b8" font-size="12">  Volume: 100%</text>
+    <text x="20" y="132" fill="#94a3b8" font-size="12">  Waveform: Sine</text>
+    <text x="20" y="157" fill="#94a3b8" font-size="12">  Square Wave</text>
+    <text x="20" y="182" fill="#94a3b8" font-size="12">  Mute Audio</text>
+  </g>
+
+  <!-- Section 4: Display Options -->
+  <g transform="translate(540, 210)">
+    <rect x="0" y="0" width="160" height="40" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="2"/>
+    <text x="80" y="25" fill="#f472b6" font-size="13" font-weight="bold" text-anchor="middle">4. Display Options</text>
+
+    <path d="M 80 40 L 80 60" stroke="#475569" stroke-width="2"/>
+    <rect x="10" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="82" fill="#e2e8f0" font-size="12">▶ Show Tenths (.0)</text>
+    <text x="20" y="107" fill="#94a3b8" font-size="12">  Use Symbols</text>
+    <text x="20" y="132" fill="#94a3b8" font-size="12">  Theme: Pro Dark</text>
+    <text x="20" y="157" fill="#94a3b8" font-size="12">  Theme: IFSC</text>
+    <text x="20" y="182" fill="#94a3b8" font-size="12">  Screen Saver</text>
+  </g>
+
+  <!-- Section 5: System & Network -->
+  <g transform="translate(710, 210)">
+    <rect x="0" y="0" width="160" height="40" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+    <text x="80" y="25" fill="#c084fc" font-size="13" font-weight="bold" text-anchor="middle">5. System Settings</text>
+
+    <path d="M 80 40 L 80 60" stroke="#475569" stroke-width="2"/>
+    <rect x="10" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="82" fill="#e2e8f0" font-size="12">▶ Radio: Wi-Fi</text>
+    <text x="20" y="107" fill="#94a3b8" font-size="12">  Radio: Bluetooth</text>
+    <text x="20" y="132" fill="#94a3b8" font-size="12">  Timezone Select</text>
+    <text x="20" y="157" fill="#94a3b8" font-size="12">  RTC Sync</text>
+    <text x="20" y="182" fill="#94a3b8" font-size="12">  Device Info</text>
+  </g>
+
+  <!-- OLED Screen Sample Preview Header -->
+  <text x="450" y="450" fill="#f8fafc" font-size="16" font-weight="bold" text-anchor="middle">Physical Control Unit OLED Display Layout Sample</text>
+
+  <!-- OLED Mockup -->
+  <g transform="translate(250, 470)">
+    <rect x="0" y="0" width="400" height="120" rx="10" fill="#000000" stroke="#64748b" stroke-width="4"/>
+
+    <!-- OLED Header Bar -->
+    <rect x="0" y="0" width="400" height="24" fill="#1e293b"/>
+    <text x="10" y="17" fill="#38bdf8" font-size="12" font-weight="bold">MODE: SPEED</text>
+    <text x="200" y="17" fill="#34d399" font-size="12" font-weight="bold" text-anchor="middle">LOOP: ON</text>
+    <text x="390" y="17" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="end">📶 Wi-Fi</text>
+
+    <!-- Main Display Clock -->
+    <text x="200" y="75" fill="#00ffcc" font-size="38" font-weight="bold" font-family="monospace" text-anchor="middle">05.824</text>
+
+    <!-- Footer Status -->
+    <text x="15" y="108" fill="#e2e8f0" font-size="12">LANE A: <tspan fill="#22c55e">READY</tspan></text>
+    <text x="385" y="108" fill="#e2e8f0" font-size="12" text-anchor="end">LANE B: <tspan fill="#22c55e">READY</tspan></text>
+  </g>
+</svg>

@@ -1,12 +1,10 @@
-# Wiki
+# T2Climb Timer Documentation
 
-Welcome to the timer-ctrl wiki. Use the links below to explore the project documentation.
+Welcome to the official **T2Climb Timer Documentation**.
 
-- [Home](Home.md)
-- [Hardware Control Unit](Hardware-Control-Unit.md)
-- [Main Controller UI](Main-Controller-UI.md)
-- [Settings and Terminal](Settings-and-Terminal.md)
-
-## Project overview
-
-This wiki documents the build, controller behavior, hardware layout, and operational settings used by timer-ctrl.
+- **[User Guide Home](Home.md)**: Main user guide for athletes, coaches, trainers, and event organizers.
+- **[Climbing Disciplines & Modes](Disciplines.md)**: Operating procedures for Speed, Bouldering, Lead, Circuit, and Clock modes.
+- **[Web UI & Remote Control Guide](Web-UI-Guide.md)**: Remote web interface controls, configuration, and display settings.
+- **[Hardware Unit & OLED Guide](Hardware-Guide.md)**: Physical station button mappings, rotary encoder controls, and OLED display screens.
+- **[Technical Reference](Technical-Reference.md)**: G-code syntax, configuration parameter keys, and debug terminal usage.
+- **[Events & Protocol Reference](Events-Reference.md)**: Event codes, state machine indices, BLE GATT specifications, and HTTP API endpoints.
