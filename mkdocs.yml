@@ -20,13 +20,14 @@ theme:
     - search.highlight
 
 nav:
-  - Overview: Home.md
-  - Disciplines & Modes:
-      - Speed Climbing: Speed.md
-      - Lead Climbing: Lead.md
-      - Bouldering: Bouldering.md
-      - Circuit Training: Circuit.md
-      - Clock & Stopwatch: Clock.md
+  - User Guide:
+      - Overview: Home.md
+      - Climbing Disciplines & Modes: Disciplines.md
+      - Web UI & Remote Control: Web-UI-Guide.md
+      - Hardware Station & OLED: Hardware-Guide.md
+  - Technical Reference:
+      - Protocol & Commands: Technical-Reference.md
+      - Events & BLE/API Specs: Events-Reference.md
 
 markdown_extensions:
   - admonition
