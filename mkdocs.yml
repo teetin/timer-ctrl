@@ -1,5 +1,5 @@
-site_name: T2Climb Timer System Manual
-site_description: Official user manual and documentation for T2Climb timing ecosystem.
+site_name: T2Climb Timer
+site_description: Climber's guide and user manual for T2Climb timing system.
 site_url: https://teetin.github.io/timer-ctrl/docs/
 
 docs_dir: public/wiki
@@ -19,12 +19,46 @@ theme:
     - search.suggest
     - search.highlight
 
+plugins:
+  - search
+  - i18n:
+      reconfigure_material: true
+      reconfigure_search: true
+      fallback_to_default: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: fi
+          name: Suomi
+          build: true
+          nav_translations:
+            User Guide: Käyttöohje
+            Quick Start: Pikaopas
+            Disciplines: Lajit & Harjoittelu
+            Speed: Nopeuskiipeily
+            Boulder: Boulder
+            Lead: Lead
+            Intervals & Circuits: Intervallit
+            Clock & Stopwatch: Kello & Sekuntikello
+            Web App Guide: Selainsovellus
+            Hardware Station: Ajastinyksikkö
+            Technical Reference: Tekninen viiteopas
+            Protocol & Commands: Protokolla ja komennot
+            Events & BLE/API Specs: Tapahtumat ja API-määritykset
+
 nav:
   - User Guide:
-      - Overview: Home.md
-      - Climbing Disciplines & Modes: Disciplines.md
-      - Web UI & Remote Control: Web-UI-Guide.md
-      - Hardware Station & OLED: Hardware-Guide.md
+      - Quick Start: index.md
+      - Disciplines:
+          - Speed: speed.md
+          - Boulder: boulder.md
+          - Lead: lead.md
+          - Intervals & Circuits: circuit.md
+          - Clock & Stopwatch: clock.md
+      - Web App Guide: Web-UI-Guide.md
+      - Hardware Station: Hardware-Guide.md
   - Technical Reference:
       - Protocol & Commands: Technical-Reference.md
       - Events & BLE/API Specs: Events-Reference.md

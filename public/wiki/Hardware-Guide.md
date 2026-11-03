@@ -1,45 +1,67 @@
-# Hardware Unit & OLED Display Guide
+# Hardware Station & Physical Controls
 
-The physical T2Climb Hardware Station is powered by an ESP32 micro-controller featuring an OLED screen, rotary encoder navigation, high-decibel audio synthesizer, push buttons, and CAN bus sensor ports.
+The T2Climb Station can be used completely standalone without a phone or laptop. It features a bright OLED display, high-decibel audio buzzer, rotary navigation knob, and tactile push buttons.
 
 ![Hardware Station Layout](images/control-unit-diagram.jpg)
 
 ---
 
-## 🎛️ Physical Controls & Button Mappings
+## 🧭 Quick Navigation
 
-- **Rotary Encoder**:
-  - **Rotate Knob**: Scroll through menu selections or adjust parameter values (volume, duration, mode).
-  - **Press Knob**: Select menu items or toggle configuration settings.
-- **Button 0 (Starter / Action)**:
-  - Short Press: Start countdown, trigger prep timer, or advance workout phase.
-- **Button 1 (Reset)**:
-  - Short Press: Reset active timer to initial state.
-- **Button 2 (Lane A / Judge A)**:
-  - Short Press: Record top sensor hit / declare winner for Lane A (Left Lane) or capture split time.
-- **Button 3 (Lane B / Judge B)**:
-  - Short Press: Record top sensor hit / declare winner for Lane B (Right Lane) or capture split time.
+- [Physical Button Functions](#physical-button-functions)
+- [Rotary Knob Navigation](#rotary-knob-navigation)
+- [Reading the OLED Screen](#reading-the-oled-screen)
+- [Station Setup & Power](#station-setup-power)
 
 ---
 
-## 📺 OLED Screen Layout & Menu Navigation
+## Physical Button Functions
 
-The OLED screen provides real-time information and menu navigation even without a smartphone connected.
+The front panel buttons give you instant control even with chalky fingers:
+
+| Button | Function | What Happens When Pressed |
+| :--- | :--- | :--- |
+| **Button 0 (Action / Start)** | Start / Advance | Starts countdown, triggers prep timer, or advances interval. |
+| **Button 1 (Reset)** | Reset | Clears clock back to initial starting state. |
+| **Button 2 (Lane A / Top A)** | Lane A Stop / Split | Stops Lane A (Left Lane) when athlete hits top, or logs Split A. |
+| **Button 3 (Lane B / Top B)** | Lane B Stop / Split | Stops Lane B (Right Lane) when athlete hits top, or logs Split B. |
+
+---
+
+## Rotary Knob Navigation
+
+The clickable knob next to the screen lets you adjust settings without connecting a smartphone:
+
+- **Rotate Left / Right**: Scroll through menu choices (Mode, Volume, Timers).
+- **Short Press**: Enter a sub-menu or confirm a value.
+- **Adjusting Times**: Turn clockwise to increase seconds, counter-clockwise to decrease seconds.
+
+---
+
+## Reading the OLED Screen
+
+The OLED screen is high-contrast and readable from across the training area.
 
 ![OLED Menu Structure & Layout](images/oled-menu-structure.svg)
 
-### OLED Screen Header Bar
-- **Mode Badge**: Displays active discipline (`SPEED`, `BOULDER`, `LEAD`, `CLOCK`, `CIRCUIT`).
-- **Loop Indicator**: Shows `LOOP: ON` or `LOOP: OFF`.
-- **Radio Indicator**: Shows communication status (`📶 Wi-Fi` or `ᛒ BLE`).
+### Screen Elements
+1. **Header Bar**:
+   - Shows the active discipline (`SPEED`, `BOULDER`, `LEAD`, `CIRCUIT`, `CLOCK`).
+   - Shows loop status (`LOOP: ON` or `OFF`).
+   - Shows connection icon (`📶 Wi-Fi` or `ᛒ BLE`).
+2. **Main Number Readout**:
+   - High-visibility digits showing time remaining or elapsed time.
+3. **Lane Status Badges**:
+   - `READY`: Athletes on pads, ready to start.
+   - `RACING`: Timer is actively running.
+   - `WIN`: Climber touched top pad (winning time locked).
+   - `FALSE`: False start detected on start pad.
+   - `FALL`: Climber fell off route.
 
-### OLED Main Display & Footer
-- **Main Digits**: Clear, high-contrast time readout (`MM:SS.t` or `SS.MMM`).
-- **Lane Badges**: Real-time status for Lane A and Lane B (`READY`, `RACING`, `WIN`, `FALSE`, `FALL`).
+---
 
-### Menu Hierarchy
-1. **Mode Select**: Switch timer modes (Speed, Boulder, Lead, Clock, Circuit).
-2. **Timing Config**: Adjust active climb duration, transition duration, and prep countdowns.
-3. **Audio Settings**: Toggle countdown pips, adjust volume slider (0-100%), and select synthesizer waveform (Warm Sine vs. Sharp Square).
-4. **Display Options**: Toggle fractional tenths, graphical icons, and display contrast themes.
-5. **System Settings**: Toggle Wi-Fi / BLE radio modes, configure timezone, and check unit diagnostics.
+## Station Setup & Power
+
+- **Power Input**: Powered via standard USB-C cable (power bank or wall adapter).
+- **Sensor Connections**: Plug start foot pads and top finish pads into the rear sensor ports before powering on.
+- **Sound Check**: Rotate knob to Sound settings to test volume before your workout.
