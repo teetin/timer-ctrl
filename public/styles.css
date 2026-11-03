@@ -118,6 +118,70 @@ body {
   font-size: 1.5rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(138, 43, 226, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.help-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  gap: 4px;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.lang-btn.active {
+  color: var(--accent);
+  background: rgba(138, 43, 226, 0.2);
+}
+
+.lang-btn:hover:not(.active) {
+  color: var(--text);
+}
+
+.lang-sep {
+  color: var(--border);
+  font-size: 0.75rem;
+}
+
 .btn-close {
   background: transparent;
   border: none;
@@ -141,7 +205,7 @@ body {
 /* Status Display */
 .status-display {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -154,6 +218,17 @@ body {
   border-radius: 8px;
   padding: 12px;
   text-align: center;
+  overflow: hidden;
+}
+
+.mode-info .value,
+.run-mode-info .value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .timer-display {

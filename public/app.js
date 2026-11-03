@@ -5,12 +5,184 @@ import { Terminal } from './terminal.js';
 // Climb Timer Control App (G-Code Protocol)
 // ============================================================================
 
+export const TRANSLATIONS = {
+  en: {
+    app_title: "T2Climb Timer Control",
+    disconnected: "Disconnected",
+    connected: "Connected",
+    connect_ble: "Connect via Bluetooth",
+    connect_wifi: "Connect via WiFi",
+    disconnect: "Disconnect",
+    label_mode: "Mode",
+    label_loop: "Loop",
+    chip_trans: "TRANS",
+    chip_climb: "CLIMB",
+    chip_state: "STATE",
+    chip_beeps: "BEEPS",
+    chip_wave: "WAVE",
+    chip_ui: "UI",
+    btn_start: "START",
+    btn_play_pause: "PLAY / PAUSE",
+    btn_reset: "RESET",
+    btn_abort: "ABORT",
+    btn_finish: "FINISH",
+    judging_override: "Judging Override",
+    winner_a: "WINNER A",
+    winner_b: "WINNER B",
+    fall_a: "FALL A",
+    fall_b: "FALL B",
+    btn_configuration: "⚙️ Configuration",
+    btn_debug_terminal: "🔧 Debug Terminal",
+    cfg_title: "Configuration",
+    cfg_climb_settings: "Climb Settings",
+    label_climb_mode: "Climb Mode",
+    mode_speed: "IFSC Speed",
+    mode_boulder: "Boulder",
+    mode_lead: "Lead",
+    mode_clock: "Clock",
+    mode_circuit: "Circuit",
+    label_autoloop: "Enable Auto-Loop",
+    label_climb_duration: "Climb Duration (seconds)",
+    label_trans_duration: "Transition Duration (seconds)",
+    label_prep_duration: "Initial Warning / Prep Duration (seconds)",
+    cfg_circuit_steps: "📋 Circuit Training Steps",
+    th_step: "#",
+    th_climb_time: "Climb Time (s)",
+    th_rest_time: "Rest Time (s)",
+    th_action: "Action",
+    btn_add_step: "➕ Add Step",
+    btn_reset_defaults: "🔄 Reset Defaults",
+    label_raw_seq: "Raw Sequence:",
+    cfg_audio_display: "Audio & Display",
+    label_countdown_beeps: "Countdown Beeps",
+    label_audio_waveform: "Audio Waveform",
+    wave_sine: "Warm Sine (Smooth)",
+    wave_square: "Sharp Square (Aggressive)",
+    label_audio_volume: "Audio Volume",
+    cfg_ui_lanes: "UI & Lanes",
+    label_use_symbols: "Use Symbols",
+    label_show_tenths: "Show Tenths",
+    label_console_output: "Console Output",
+    label_maint_mode: "Maintenance Mode",
+    label_ui_theme: "UI Theme",
+    theme_dark: "Pro Dark (High Contrast)",
+    theme_ifsc: "IFSC Official Colors",
+    label_active_lanes: "Active Lanes",
+    lane_a: "Lane A",
+    lane_b: "Lane B",
+    label_unit_assigned_lane: "Unit Assigned Lane",
+    lane_global: "Global (Both)",
+    lane_left: "Lane A (Left)",
+    lane_right: "Lane B (Right)",
+    cfg_system_timezone: "System & Timezone",
+    label_radio_mode: "Radio Mode (Communication)",
+    radio_wifi: "Wi-Fi Mode",
+    radio_ble: "Bluetooth Mode (BLE)",
+    label_tz_presets: "Timezone Presets",
+    tz_custom: "Custom POSIX String...",
+    label_posix_tz: "POSIX Timezone String",
+    btn_set_tz: "Set Timezone",
+    label_device_rtc: "Device Real-Time Clock (RTC)",
+    btn_sync_time: "🕒 Sync System Time with Browser",
+    step_prefix: "Step",
+    btn_remove: "🗑️ Remove",
+    manual_title: "User Manual",
+    loop_on: "LOOP ON",
+    loop_off: "OFF"
+  },
+  fi: {
+    app_title: "T2Climb Ajastin",
+    disconnected: "Ei yhteyttä",
+    connected: "Yhdistetty",
+    connect_ble: "Yhdistä Bluetoothilla",
+    connect_wifi: "Yhdistä Wi-Fiin",
+    disconnect: "Katkaise yhteys",
+    label_mode: "Laji",
+    label_loop: "Kierto",
+    chip_trans: "LEPO",
+    chip_climb: "KIIPEILY",
+    chip_state: "TILA",
+    chip_beeps: "ÄÄNET",
+    chip_wave: "AALTO",
+    chip_ui: "NÄYTTÖ",
+    btn_start: "START",
+    btn_play_pause: "TOISTA / TAUKO",
+    btn_reset: "NOLLAA",
+    btn_abort: "KESKEYTÄ",
+    btn_finish: "VALMIS",
+    judging_override: "Tuomarin toiminnot",
+    winner_a: "VOITTAJA A",
+    winner_b: "VOITTAJA B",
+    fall_a: "PUTOAMINEN A",
+    fall_b: "PUTOAMINEN B",
+    btn_configuration: "⚙️ Asetukset",
+    btn_debug_terminal: "🔧 Pääte",
+    cfg_title: "Asetukset",
+    cfg_climb_settings: "Kiipeilyasetukset",
+    label_climb_mode: "Kiipeilylaji",
+    mode_speed: "Nopeuskiipeily",
+    mode_boulder: "Boulder",
+    mode_lead: "Lead",
+    mode_clock: "Kello",
+    mode_circuit: "Intervallit",
+    label_autoloop: "Jatkuva kierto (Auto-Loop)",
+    label_climb_duration: "Kiipeilyaika (sekuntia)",
+    label_trans_duration: "Lepo- / siirtymäaika (sekuntia)",
+    label_prep_duration: "Valmistautumisaika (sekuntia)",
+    cfg_circuit_steps: "📋 Intervallivaiheet",
+    th_step: "#",
+    th_climb_time: "Kiipeilyaika (s)",
+    th_rest_time: "Lepoaika (s)",
+    th_action: "Toiminto",
+    btn_add_step: "➕ Lisää vaihe",
+    btn_reset_defaults: "🔄 Palauta oletukset",
+    label_raw_seq: "Sarjakoodi:",
+    cfg_audio_display: "Äänet ja näyttö",
+    label_countdown_beeps: "Varoituspiippaukset",
+    label_audio_waveform: "Äänen aaltomuoto",
+    wave_sine: "Pehmeä sini (Warm Sine)",
+    wave_square: "Terävä kantti (Sharp Square)",
+    label_audio_volume: "Äänenvoimakkuus",
+    cfg_ui_lanes: "Käyttöliittymä ja radat",
+    label_use_symbols: "Käytä symboleita",
+    label_show_tenths: "Näytä kymmenykset",
+    label_console_output: "Konsoliulostulo",
+    label_maint_mode: "Huoltotila",
+    label_ui_theme: "Väriteema",
+    theme_dark: "Tumma (Pro Dark)",
+    theme_ifsc: "IFSC-viralliset värit",
+    label_active_lanes: "Aktiiviset radat",
+    lane_a: "Rata A",
+    lane_b: "Rata B",
+    label_unit_assigned_lane: "Ohjaimen rata",
+    lane_global: "Molemmat (Global)",
+    lane_left: "Rata A (Vasen)",
+    lane_right: "Rata B (Oikea)",
+    cfg_system_timezone: "Järjestelmä ja aikavyöhyke",
+    label_radio_mode: "Yhteystila",
+    radio_wifi: "Wi-Fi-tila",
+    radio_ble: "Bluetooth-tila (BLE)",
+    label_tz_presets: "Aikavyöhykkeet",
+    tz_custom: "Oma POSIX-merkkijono...",
+    label_posix_tz: "POSIX-aikavyöhyke",
+    btn_set_tz: "Aseta aikavyöhyke",
+    label_device_rtc: "Laitteen reaaliaikakello (RTC)",
+    btn_sync_time: "🕒 Synkronoi aika selaimesta",
+    step_prefix: "Vaihe",
+    btn_remove: "🗑️ Poista",
+    manual_title: "Käyttöohje",
+    loop_on: "KIERTO PÄÄLLÄ",
+    loop_off: "POIS"
+  }
+};
+
 export class ClimbTimerApp {
   constructor() {
     this.transport = null;
     this.terminal = null;
     this.currentMode = 0;
     this.currentRunMode = 0;
+    this.locale = this.detectLocale();
 
     this.config = {
       M: 0,   // Mode
@@ -44,6 +216,71 @@ export class ClimbTimerApp {
     this.timerTotal = 0;
 
     this.initializeUI();
+  }
+
+  detectLocale() {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('t2climb_lang');
+      if (saved && (saved === 'fi' || saved === 'en')) return saved;
+    }
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      if (navigator.language.toLowerCase().startsWith('fi')) return 'fi';
+    }
+    return 'en';
+  }
+
+  setLocale(lang) {
+    if (lang !== 'en' && lang !== 'fi') return;
+    this.locale = lang;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('t2climb_lang', lang);
+    }
+    this.applyLocale();
+  }
+
+  t(key) {
+    const dict = TRANSLATIONS[this.locale] || TRANSLATIONS.en;
+    return dict[key] || TRANSLATIONS.en[key] || key;
+  }
+
+  applyLocale() {
+    // 1. Update text nodes with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = this.t(key);
+      if (val) {
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          el.placeholder = val;
+        } else {
+          el.textContent = val;
+        }
+      }
+    });
+
+    // 2. Update language switcher buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === this.locale);
+    });
+
+    // 3. Update User Manual link target
+    const manualLink = document.getElementById('userManualLink');
+    if (manualLink) {
+      manualLink.href = this.locale === 'fi' ? './docs/fi/' : './docs/';
+      manualLink.title = this.t('manual_title');
+      manualLink.setAttribute('aria-label', this.t('manual_title'));
+    }
+
+    // 4. Update status and mode text
+    const statusTextEl = document.getElementById('statusText');
+    if (statusTextEl) {
+      const isConn = this.transport && this.transport.isConnected();
+      statusTextEl.textContent = isConn ? this.t('connected') : this.t('disconnected');
+    }
+
+    this.updateModeDisplay();
+    this.updateRunModeDisplay();
+    this.updateSymbolUI();
+    this.renderCircuitStepsTable();
   }
 
   getDefaultTransportType() {
@@ -84,6 +321,13 @@ export class ClimbTimerApp {
     if (terminalEl) {
       this.terminal = new Terminal(terminalEl);
     }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const lang = e.target.getAttribute('data-lang');
+        this.setLocale(lang);
+      });
+    });
 
     document.getElementById('connectBleBtn')?.addEventListener('click', () => this.connect('ble'));
     document.getElementById('connectHttpBtn')?.addEventListener('click', () => this.connect('http'));
@@ -206,6 +450,7 @@ export class ClimbTimerApp {
     this.updateSymbolUI();
     this.updateTimerPreview();
     this.applyTheme();
+    this.applyLocale();
 
     this.handleAutoConnect();
   }
@@ -831,7 +1076,9 @@ export class ClimbTimerApp {
   }
 
   updateModeDisplay() {
-    const modes = ['IFSC SPEED', 'BOULDER', 'LEAD', 'CLOCK', 'CIRCUIT'];
+    const modesEn = ['IFSC SPEED', 'BOULDER', 'LEAD', 'CLOCK', 'CIRCUIT'];
+    const modesFi = ['SPEED', 'BOULDER', 'LEAD', 'KELLO', 'INTERVALLIT'];
+    const modes = this.locale === 'fi' ? modesFi : modesEn;
     const modeDisp = document.getElementById('modeDisplay');
     if (modeDisp) modeDisp.textContent = modes[this.currentMode] || '--';
 
@@ -846,16 +1093,16 @@ export class ClimbTimerApp {
 
   updateRunModeDisplay() {
     const runModeDisp = document.getElementById('runModeDisplay');
-    if (runModeDisp) runModeDisp.textContent = this.config.Q ? 'LOOP ON' : 'OFF';
+    if (runModeDisp) runModeDisp.textContent = this.config.Q ? this.t('loop_on') : this.t('loop_off');
   }
 
   updateSymbolUI() {
     const prefix = this.config.Y ? '▶ ' : '';
-    const startLabel = this.currentMode === 1 ? 'PLAY / PAUSE' : 'START';
+    const startLabel = this.currentMode === 1 ? this.t('btn_play_pause') : this.t('btn_start');
     const startBtn = document.getElementById('btn-start');
     if (startBtn) startBtn.textContent = `${prefix}${startLabel}`;
     const resetBtn = document.getElementById('btn-reset');
-    if (resetBtn) resetBtn.textContent = `${this.config.Y ? '⟲ ' : ''}RESET`;
+    if (resetBtn) resetBtn.textContent = `${this.config.Y ? '⟲ ' : ''}${this.t('btn_reset')}`;
   }
 
   async syncDeviceTime() {
@@ -958,10 +1205,10 @@ export class ClimbTimerApp {
     steps.forEach((step, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong>Step ${idx + 1}</strong></td>
+        <td><strong>${this.t('step_prefix')} ${idx + 1}</strong></td>
         <td><input type="number" class="step-climb-input" data-idx="${idx}" min="1" max="3600" value="${step.climb}" /></td>
         <td><input type="number" class="step-rest-input" data-idx="${idx}" min="0" max="3600" value="${step.rest}" /></td>
-        <td><button type="button" class="btn btn-sm btn-danger btn-remove-step" data-idx="${idx}">🗑️ Remove</button></td>
+        <td><button type="button" class="btn btn-sm btn-danger btn-remove-step" data-idx="${idx}">${this.t('btn_remove')}</button></td>
       `;
       tbody.appendChild(tr);
     });
