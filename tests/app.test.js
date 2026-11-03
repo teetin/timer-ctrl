@@ -101,3 +101,29 @@ test('removeCircuitStep updates circuitStepsCount, config, and re-renders table'
   expect(app.circuitStepsCount).toBe(2);
   expect(tbody.children.length).toBe(2);
 });
+
+test('i18n locale switching updates texts and user manual link', () => {
+  const manualLink = document.createElement('a');
+  manualLink.id = 'userManualLink';
+  document.body.appendChild(manualLink);
+
+  const titleEl = document.createElement('h1');
+  titleEl.setAttribute('data-i18n', 'app_title');
+  document.body.appendChild(titleEl);
+
+  const btnStart = document.createElement('button');
+  btnStart.id = 'btn-start';
+  document.body.appendChild(btnStart);
+
+  const app = new ClimbTimerApp();
+  app.setLocale('en');
+
+  expect(manualLink.href).toContain('docs');
+  expect(manualLink.href).not.toContain('docs/fi');
+  expect(titleEl.textContent).toBe('T2Climb Timer Control');
+
+  app.setLocale('fi');
+  expect(manualLink.href).toContain('docs/fi');
+  expect(titleEl.textContent).toBe('T2Climb Ajastin');
+  expect(btnStart.textContent).toBe('START');
+});
