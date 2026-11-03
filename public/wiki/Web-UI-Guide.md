@@ -1,59 +1,73 @@
-# Web UI & Remote Control Guide
+# Web App & Remote Control Guide
 
-The T2Climb Web Control UI (`timer-ctrl`) provides real-time control, live display updates, and easy configuration management from any smartphone, tablet, or web browser.
+The T2Climb Web App (`timer-ctrl`) allows you to control the timer, adjust training intervals, and view live results directly from any smartphone, tablet, or laptop.
 
 ![Web Control Panel](images/web-ui-main.png)
 
 ---
 
-## 📱 Getting Connected
+## 📱 Quick Navigation
 
-1. **Bluetooth Connection (BLE)**:
-   - Click **Connect via Bluetooth**.
-   - Select your T2Climb device from the browser pairing pop-up window.
-2. **Wi-Fi Connection (HTTP / Local Network)**:
-   - Connect your device to the T2Climb Wi-Fi access point or local network.
-   - Click **Connect via WiFi** to connect instantly.
+- [Connecting to the Timer](#connecting-to-the-timer)
+- [Main Screen Controls](#main-screen-controls)
+- [Configuring Intervals & Sound](#configuring-intervals-sound)
+- [Display Options & Themes](#display-options-themes)
 
 ---
 
-## 🎛️ Main Control Panel Sections
+## Connecting to the Timer
 
-- **Header Status Bar**: Displays connection state (Connected/Disconnected) and current communication mode (Bluetooth or Wi-Fi).
-- **Primary Display**: Large high-contrast digits showing time remaining or elapsed time, along with active mode (`Speed`, `Boulder`, `Lead`, `Circuit`, `Clock`) and state badges.
-- **Action Buttons**:
-  - **START / PAUSE**: Begins or pauses the timer sequence.
-  - **RESET**: Restores default starting time and resets race states.
-  - **ABORT / FINISH**: Stops the active climb attempt or ends rotation interval early.
-- **Referee & Judge Overrides**: Quick-action buttons for declaring Lane A / Lane B winners or recording falls in Speed mode.
-- **Sequence Flow Visualizer**: Graphical pipeline showing upcoming preparation, climb, and transition phases.
+You don't need to install any app store software. Simply open the web page in Chrome, Edge, or Safari:
+
+1. **Bluetooth (Recommended for Phone)**:
+   - Tap **Connect via Bluetooth**.
+   - Select your T2Climb timer from the Bluetooth device dialog.
+   - You are connected immediately without needing Wi-Fi or entering passwords.
+2. **Wi-Fi**:
+   - Join the T2Climb Wi-Fi network (or connect both devices to the gym network).
+   - Tap **Connect via WiFi**.
 
 ---
 
-## ⚙️ Configuration & System Settings
+## Main Screen Controls
 
-Click the **⚙️ Configuration** button at the bottom of the main panel to open the settings panel. All changes apply instantly to the hardware station.
+The main display gives you full control of the current climb session:
 
-![Configuration Drawer](images/web-ui-settings.png)
+- **Large Timer Display**: Shows active time remaining (countdown) or elapsed time (stopwatch / speed).
+- **Mode Badge**: Shows current discipline (`Speed`, `Boulder`, `Lead`, `Circuit`, `Clock`).
+- **Control Buttons**:
+  - **START**: Begins the countdown or starts the stopwatch.
+  - **RESET**: Stops the clock and resets back to the initial preparation state.
+  - **ABORT**: (Speed mode) Halts a false start or race attempt immediately.
+  - **FINISH**: (Boulder / Lead) Ends the current attempt early and moves to the rest period.
+- **Judge Overrides** *(Speed Mode)*:
+  - **WINNER A / WINNER B**: Manually triggers a win for either lane.
+  - **FALL A / FALL B**: Marks a fall for either lane.
+- **Visual Progress Bar**: Shows current phase (Prep, Climb, Rest) and previews upcoming intervals.
+
+---
+
+## Configuring Intervals & Sound
+
+Tap **⚙️ Configuration** at the bottom to adjust your session settings. Changes take effect on the timer immediately:
 
 ### 1. Climb Settings
-- **Climb Mode**: Switch between Speed, Bouldering, Lead, Clock, and Circuit modes.
-- **Enable Auto-Loop**: Toggles continuous loop execution for interval training versus single-cycle termination.
-- **Climb / Transition / Prep Durations**: Adjustable sliders and input boxes to configure active climbing, rest, and preparation warning times in seconds.
+- **Climb Mode**: Switch between Speed, Boulder, Lead, Clock, and Circuit.
+- **Climb Duration**: Time in seconds for the climbing phase.
+- **Transition Duration**: Time in seconds for rest between attempts.
+- **Initial Prep Duration**: Warning countdown before the first attempt starts.
+- **Enable Auto-Loop**: Check to continuously repeat intervals (Climb ➔ Rest ➔ Climb).
 
-### 2. Circuit Training Builder
-- Add, edit, or remove custom workout step pairs (Climb duration / Rest duration).
-- Reorder or reset workout programs to default presets.
+### 2. Audio & Volume
+- **Countdown Beeps**: Turn audio beeps on or off.
+- **Audio Waveform**: Choose **Warm Sine** for indoor gyms or **Sharp Square** for loud, noisy areas.
+- **Audio Volume**: Slider from 0% (silent) to 100% (maximum volume).
 
-### 3. Audio & Volume Settings
-- **Countdown Beeps**: Toggle warning pips on or off.
-- **Audio Waveform**: Choose between **Warm Sine** (smooth indoor gym tone) or **Sharp Square** (piercing tone for loud outdoor venues).
-- **Volume Slider**: Adjust master volume level from 0% to 100%.
+---
 
-### 4. UI & Lane Settings
-- **Display Options**: Toggle sub-second tenths display (`.0`), graphical state icons, or high-contrast theme schemes.
-- **Active Lanes**: Enable or disable Lane A and Lane B for single-lane or dual-lane operations.
+## Display Options & Themes
 
-### 5. System Time & Timezone
-- **Timezone Presets**: Choose regional timezones (UTC, Europe/Helsinki, US Eastern, etc.).
-- **Sync System Time**: Click **Sync System Time with Browser** to update the control station's hardware RTC clock instantly.
+Customize how the timer looks on your screen:
+- **Show Tenths**: Displays tenths of seconds (e.g. `12.4s`).
+- **UI Theme**: Switch between **Pro Dark** (high contrast for outdoor/bright gyms) and **IFSC Official Colors**.
+- **Sync System Time**: Tap **🕒 Sync System Time with Browser** to update the timer box's clock to your exact phone time.
