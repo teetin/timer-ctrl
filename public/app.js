@@ -30,6 +30,7 @@ export class ClimbTimerApp {
       D: 1, // Radio Mode
       tz: 'EET-2EEST,M3.5.0/3,M10.5.0/4',
       circ_seq: '30/15,30/15',
+      U: 0,
       theme: 0,
       console: false,
     };
@@ -109,7 +110,10 @@ export class ClimbTimerApp {
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
     document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
-      this.config.theme = parseInt(e.target.value, 10);
+      const val = parseInt(e.target.value, 10);
+      this.config.theme = val;
+      this.config.U = val;
+      this.sendConfig('U', val);
       this.applyTheme();
     });
 
@@ -491,13 +495,14 @@ export class ClimbTimerApp {
     const args = this.parseArgs(data.split(/\s+/));
     Object.keys(args).forEach((key) => {
       if (Object.prototype.hasOwnProperty.call(this.config, key)) {
-        // For config, only M and A should potentially be hex if they ever appear there.
-        // But based on doc, M (Mode) in config is ID (Decimal).
-        // Let's stick to what parseArgs returns now.
         this.config[key] = args[key];
       }
     });
 
+    if (args.U !== undefined) {
+      this.config.theme = args.U;
+      this.applyTheme();
+    }
     if (args.M !== undefined) {
       this.currentMode = this.config.M;
       this.updateModeDisplay();
@@ -737,6 +742,7 @@ export class ClimbTimerApp {
       'cfg-lane-a': 'H',
       'cfg-lane-b': 'J',
       'cfg-waveform': 'W',
+      'cfg-theme': 'theme',
     };
 
     Object.keys(mapping).forEach((id) => {
@@ -958,6 +964,12 @@ export class ClimbTimerApp {
     const tbody = document.getElementById('circuitStepsTableBody');
     if (!tbody) return;
 
+    if (document.activeElement && tbody.contains(document.activeElement)) {
+      const rawEl = document.getElementById('circSeqRaw');
+      if (rawEl) rawEl.textContent = this.config.circ_seq;
+      return;
+    }
+
     const steps = this.parseCircSeqStr(this.config.circ_seq);
     tbody.innerHTML = '';
 
@@ -974,6 +986,7 @@ export class ClimbTimerApp {
 
     tbody.querySelectorAll('.step-climb-input, .step-rest-input').forEach((input) => {
       input.addEventListener('change', () => this.updateCircuitStepsFromUI());
+      input.addEventListener('input', () => this.updateCircuitStepsFromUI());
     });
 
     tbody.querySelectorAll('.btn-remove-step').forEach((btn) => {
@@ -1013,7 +1026,8 @@ export class ClimbTimerApp {
 
   addCircuitStep() {
     const steps = this.parseCircSeqStr(this.config.circ_seq);
-    steps.push({ climb: 30, rest: 15 });
+    const lastStep = steps.length > 0 ? steps[steps.length - 1] : { climb: 30, rest: 15 };
+    steps.push({ climb: lastStep.climb, rest: lastStep.rest });
     const seq = this.buildCircSeqStr(steps);
     this.config.circ_seq = seq;
     this.sendTerminalCommand('circ_seq ' + seq);
