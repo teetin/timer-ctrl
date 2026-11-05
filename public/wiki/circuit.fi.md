@@ -17,6 +17,7 @@
 ## Mikä on Intervallit-tila?
 
 Teitpä sitten 7:3-toistoja otelaudalla, 40 muuvin kestävyystraverssia tai voimakestävyyssarjoja:
+
 - Ohjelmoit ajastimeen sarjan **vaiheita (Steps)**, joista jokaiselle määritetään **Kiipeilyaika** ja **Lepoaika**.
 - Ajastin etenee automaattisesti vaiheesta toiseen.
 - Visuaaliset edistymispalkit puhelimen ruudulla ja selkeät äänimerkit kertovat tarkalleen, milloin ripustaudut otteille ja milloin pudottaudut alas ilman että näyttöä tarvitsee tuijottaa.
@@ -26,14 +27,17 @@ Teitpä sitten 7:3-toistoja otelaudalla, 40 muuvin kestävyystraverssia tai voim
 ## Aktivointi ja käynnistys
 
 ### 1. Valitse Intervallit-tila
+
 - **Puhelimella / Sovelluksessa**: Valitse valikosta *Climb Mode* -kohdasta **Circuit**.
 - **Ajastinyksiköstä**: Käännä säätönuppi asentoon `CIRCUIT` ja paina nuppia.
 
 ### 2. Muokkaa tai tarkista vaiheet
+
 - Avaa **⚙️ Configuration** ja katso kohtaa **📋 Circuit Training Steps**.
 - Lisää haluamasi määrä vaiheita sekä määritä niiden kiipeily- ja lepoajat.
 
 ### 3. Käynnistä harjoitus
+
 - Paina **START** sovelluksesta tai **Button 0 (Action)** laitteesta.
 - Alkuvalmistautumisaika (esim. 15 s) antaa aikaa mankata kädet ja asettua otelaudan alle.
 
@@ -71,14 +75,17 @@ Ajastin antaa selkeät äänimerkit, jotta voit keskittyä otteissa roikkumiseen
 Tässä muutama kiipeilijöiden suosima harjoitusrutiini:
 
 ### 1. Otelautarepeaterit (7s roikunta / 3s lepo x 6)
+
 - Lisää 6 vaihetta: jokaiseen **7s Climb**, **3s Rest**.
 - Tartu otteisiin aloitusäänellä ja irrota kaksoispiippauksella.
 
 ### 2. 4x4 Voimakestävyystreeni
+
 - Lisää 4 vaihetta: jokaiseen **60s Climb**, **120s Rest**.
 - Kiipeä 4 eri boulder-reittiä putkeen kahden minuutin palautuksilla.
 
 ### 3. Kestävyyspyramidi seinällä
+
 - Vaihe 1: 30s kiipeilyä / 15s lepoa
 - Vaihe 2: 45s kiipeilyä / 15s lepoa
 - Vaihe 3: 60s kiipeilyä / 30s lepoa

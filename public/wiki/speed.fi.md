@@ -17,6 +17,7 @@
 ## Mikä on Nopeuskiipeily-tila?
 
 Nopeuskiipeilyssä kaksi kiipeilijää kisaa rinnakkain identtisillä 15 metrin radoilla (Rata A ja Rata B). Ajastin:
+
 - Soittaa virallisen maailmancup-lähtöäänisarjan ("Piip... Piip... Piiiip!").
 - Käynnistää molempien ratojen kellon yhtäaikaisesti GO-äänimerkillä.
 - Tunnistaa varaslähdön automaattisesti, jos kiipeilijä irrottaa jalkansa lähtölevyltä liian aikaisin.
@@ -27,14 +28,17 @@ Nopeuskiipeilyssä kaksi kiipeilijää kisaa rinnakkain identtisillä 15 metrin 
 ## Aktivointi ja käynnistys
 
 ### 1. Valitse Nopeuskiipeily
+
 - **Puhelimella / Selainsovelluksessa**: Avaa valikko ja valitse *Climb Mode* -kohdasta **IFSC Speed**.
 - **Ajastinyksiköstä**: Käännä säätönuppia, kunnes OLED-näytöllä lukee `SPEED`, ja paina nuppia valitaksesi.
 
 ### 2. Valmistele kiipeilijät
+
 - Kiipeilijät astuvat seinän juurella oleville lähtölevyille.
 - Ajastimen näytölle syttyy teksti **READY** ja vihreät merkkivalot.
 
 ### 3. Käynnistä lähtö
+
 - Paina selainsovelluksesta **START** tai ajastinyksiköstä **Button 0 (Action)**.
 
 ---
@@ -66,6 +70,7 @@ Näin ajastin etenee suorituksen aikana:
 | **Top-kosketus** | `WINNER` (Vihreä) | Vahvistusääni | Kiipeilijä lyö ylälevyä. Loppuaika lukitaan välittömästi. |
 
 ### Varaslähdön käsittely
+
 - Jos kiipeilijän jalka nousee lähtölevyltä alle **100 ms** sisällä GO-äänestä (tai ennen sitä), järjestelmä rekisteröi **VARASLÄHDÖN**.
 - Kuuluu matala varoitusääni, radan väri muuttuu **PUNAISEKSI** ja näytölle tulee `FALSE`.
 

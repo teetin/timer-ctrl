@@ -17,6 +17,7 @@ The T2Timer units support a Serial-over-BLE interface based on the **Nordic UART
 Commands are plain text strings sent to the **RX** characteristic, terminated with a newline (`\n`).
 
 ### 1. Events (`E`)
+
 Trigger or receive system events. For a full list of event IDs and arguments, see [EVENTS.md](EVENTS.md).
 
 - **Format:** `E<code> <ts:hex> [args...]`
@@ -24,6 +25,7 @@ Trigger or receive system events. For a full list of event IDs and arguments, se
 - **Example (Receive):** `E3 1234abcd M0` (Race Start notification)
 
 ### 2. Configuration (`C`)
+
 Update system settings. Multiple keys can be updated in one command.
 
 - **Format:** `C <key><val> [<key><val> ...]`
@@ -50,6 +52,7 @@ Update system settings. Multiple keys can be updated in one command.
 - **Example:** `C M1 C240 T15` -> `C M1 C240 T15`
 
 ### 3. Getters (`G`)
+
 Retrieve one or more configuration values. Providing no keys returns the full configuration.
 
 - **Format:** `G [<key> ...]`
@@ -58,6 +61,7 @@ Retrieve one or more configuration values. Providing no keys returns the full co
 - **Example (Full):** `G` -> `G M1 C240 T15 V100 Q0`
 
 ### 4. System Commands
+
 - **`S`**: Status Query. Response: `S I<uuid> M<mode> Q<runmode>`
 - **`R`**: Reset (Abort current race). Response: `R OK`
 - **`RADIO [mode]`**: Set Radio Mode (`WIFI` or `BLE`). Response: `OK RADIO <mode>`

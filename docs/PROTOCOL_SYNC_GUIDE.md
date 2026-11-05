@@ -7,56 +7,64 @@ This document provides a complete, unambiguous specification and implementation 
 ## 1. Overview of Protocol Changes & Directives
 
 ### 1.1 Time Command (`TME`)
+
 Replaces legacy time setting and queries. Standardizes time sync across BLE, WebSocket, and HTTP.
+
 * **Set Format:** `TME YYYY-MM-DD HH:MM:SS`
-  * Example: `TME 2025-05-20 14:30:00`
-  * Action: Updates System Time via `settimeofday` and syncs hardware RTC (`rtc_node_sync_from_system()`).
-  * Response: `OK TME 2025-05-20 14:30:00\n`
+    * Example: `TME 2025-05-20 14:30:00`
+    * Action: Updates System Time via `settimeofday` and syncs hardware RTC (`rtc_node_sync_from_system()`).
+    * Response: `OK TME 2025-05-20 14:30:00\n`
 * **Query Format:** `TME`
-  * Response: `TME YYYY-MM-DD HH:MM:SS\n`
+    * Response: `TME YYYY-MM-DD HH:MM:SS\n`
 
 ### 1.2 Radio Mode Command (`RDO`)
+
 Replaces `RADIO` / key `D`. Standardizes radio mode queries and switches.
+
 * **Set Format:** `RDO <0|1>` (or `RDO <WIFI|BLE>`)
-  * `0` / `WIFI`: Radio mode set to WiFi (0).
-  * `1` / `BLE`: Radio mode set to BLE (1).
-  * Action: Persists radio mode to NVS and reboots device after 300ms delay.
-  * Response: `OK RDO <0|1> — rebooting\n`
+    * `0` / `WIFI`: Radio mode set to WiFi (0).
+    * `1` / `BLE`: Radio mode set to BLE (1).
+    * Action: Persists radio mode to NVS and reboots device after 300ms delay.
+    * Response: `OK RDO <0|1> — rebooting\n`
 * **Query Format:** `RDO`
-  * Response: `RDO <0|1>\n` (e.g. `RDO 0` for WiFi, `RDO 1` for BLE)
+    * Response: `RDO <0|1>\n` (e.g. `RDO 0` for WiFi, `RDO 1` for BLE)
 
 ### 1.3 Circuit Sequence Command (`CS`)
+
 Replaces string-based `circ_seq` with indexed zero-based step manipulation.
+
 * **0-Based Indexing:** Step indices start at `0`.
 * **Query Total Step Count:**
-  * Request: `CS`
-  * Response: `CS <total_count>\n` (e.g. `CS 2` if 2 steps exist).
+    * Request: `CS`
+    * Response: `CS <total_count>\n` (e.g. `CS 2` if 2 steps exist).
 * **Query Specific Step:**
-  * Request: `CS <idx>`
-  * Response: `CS <idx> <climb_sec> <rest_sec>\n` (e.g., `CS 0 30 15`).
-  * If `<idx>` is out of bounds: returns `ERR CS index out of bounds\n`.
+    * Request: `CS <idx>`
+    * Response: `CS <idx> <climb_sec> <rest_sec>\n` (e.g., `CS 0 30 15`).
+    * If `<idx>` is out of bounds: returns `ERR CS index out of bounds\n`.
 * **Set / Add Step:**
-  * Request: `CS <idx> <climb_sec> <rest_sec>`
-  * Behavior:
+    * Request: `CS <idx> <climb_sec> <rest_sec>`
+    * Behavior:
     * If `idx` is within existing range $[0, \text{count}-1]$: overwrites step `idx`.
     * If `idx == count`: appends step to end of sequence.
-  * Response: `CS <idx> <climb_sec> <rest_sec>\n` and broadcasts updated sequence to node cluster.
+    * Response: `CS <idx> <climb_sec> <rest_sec>\n` and broadcasts updated sequence to node cluster.
 * **Remove Step:**
-  * Request: `CS <idx> 0 0`
-  * Behavior:
+    * Request: `CS <idx> 0 0`
+    * Behavior:
     * Removes step at `idx` from list.
     * Shifts trailing items down by $-1$ (items from $idx+1 \dots N-1$ move to $idx \dots N-2$).
     * Sends responses for all shifted indices, followed by notifying that the old last slot is cleared: `CS <old_last_idx> 0 0\n`.
-  * Special Case: Clear/Remove last step with `CS -1 0 0`
+    * Special Case: Clear/Remove last step with `CS -1 0 0`
     * Request: `CS -1 0 0`
     * Removes step at index $N-1$ and returns `CS <N-1> 0 0\n`.
 
 ### 1.4 Config Key Mappings
+
 * **Theme Key (`U`):** UI Theme setting is mapped to G-code key `'U'` (`CFG_TYPE_UI_THEME` = 7).
-  * Set: `C U<val>` (e.g. `C U0` or `C U1`).
-  * Response from `G`: includes `U<val>`.
+    * Set: `C U<val>` (e.g. `C U0` or `C U1`).
+    * Response from `G`: includes `U<val>`.
 
 ### 1.5 HTTP `/cmd` Response Sync
+
 Update HTTP `/cmd?val=...` handler in `esp-climb-timer/main/http_node.cpp` to capture the protocol response callback text from `protocol_parse_command` and send it in the HTTP response body (instead of static `"OK"`). This ensures HTTP GET command requests return the exact same response as WebSocket and BLE.
 
 ---
@@ -64,6 +72,7 @@ Update HTTP `/cmd?val=...` handler in `esp-climb-timer/main/http_node.cpp` to ca
 ## 2. Firmware Implementation Changes (`esp-climb-timer`)
 
 ### File: `esp-climb-timer/main/protocol.cpp`
+
 1. Update command handler for `TME`:
    ```cpp
    } else if (strncmp(line, "TME", 3) == 0) {
@@ -196,6 +205,7 @@ Update HTTP `/cmd?val=...` handler in `esp-climb-timer/main/http_node.cpp` to ca
    ```
 
 ### File: `esp-climb-timer/main/http_node.cpp`
+
 Capture protocol responses in HTTP `/cmd` handler:
 ```cpp
 struct http_cmd_ctx {
@@ -237,7 +247,7 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
 ### File: `public/app.js`
 
 1. **Update Line Parser (`handleLine`):**
-   * Parse `TME`:
+    * Parse `TME`:
      ```javascript
      if (line.startsWith('TME ') || line.startsWith('OK TME ')) {
        const timeVal = line.replace(/^(OK\s+)?TME\s*/, '').trim();
@@ -245,7 +255,8 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
        return;
      }
      ```
-   * Parse `RDO`:
+
+    * Parse `RDO`:
      ```javascript
      if (line.startsWith('RDO ') || line.startsWith('OK RDO ')) {
        const radioVal = line.replace(/^(OK\s+)?RDO\s*/, '').replace(/—.*/, '').trim();
@@ -256,7 +267,8 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
        return;
      }
      ```
-   * Parse `CS`:
+
+    * Parse `CS`:
      ```javascript
      if (line.startsWith('CS ') || line.startsWith('OK CS ')) {
        const body = line.replace(/^(OK\s+)?CS\s*/, '').trim();
@@ -296,7 +308,7 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
    ```
 
 3. **Update Theme & Config Mappings:**
-   * Map `cfg-theme` change to send `C U<val>`:
+    * Map `cfg-theme` change to send `C U<val>`:
      ```javascript
      document.getElementById('cfg-theme')?.addEventListener('change', (e) => {
        const val = parseInt(e.target.value, 10);
@@ -318,7 +330,7 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
    ```
 
 5. **Update Circuit Steps UI Modifiers (`addCircuitStep`, `removeCircuitStep`, `updateCircuitStepsFromUI`):**
-   * Use `CS <idx> <climb> <rest>` and `CS <idx> 0 0` commands to update individual steps immediately.
+    * Use `CS <idx> <climb> <rest>` and `CS <idx> 0 0` commands to update individual steps immediately.
 
 ---
 
@@ -329,8 +341,9 @@ static esp_err_t http_event_post_handler(httpd_req_t *req) {
    ```bash
    bun test
    ```
+
 2. **Verify Protocol Output over Terminal / Console:**
-   * Query `TME`, `RDO`, `CS`.
-   * Verify response formatting matches specifications.
+    * Query `TME`, `RDO`, `CS`.
+    * Verify response formatting matches specifications.
 3. **Pre-Commit Checks:**
    Follow `pre_commit_instructions` before submitting changes.
