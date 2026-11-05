@@ -17,6 +17,7 @@ The **Speed** mode is designed for official IFSC 15-meter speed climbing trainin
 ## What is Speed Mode?
 
 In Speed mode, two climbers race side-by-side on identical 15-meter routes (Lane A and Lane B). The timer:
+
 - Plays the official World Cup audio countdown ("Pip... Pip... Piiip!").
 - Starts running simultaneously for both lanes on the GO tone.
 - Detects false starts automatically if an athlete leaves the pressure pad too early.
@@ -27,14 +28,17 @@ In Speed mode, two climbers race side-by-side on identical 15-meter routes (Lane
 ## How to Activate & Start
 
 ### 1. Select Speed Mode
+
 - **From Phone / Web UI**: Open the menu, select **IFSC Speed** under *Climb Mode*.
 - **From Hardware Station**: Turn the rotary knob until the OLED screen shows `SPEED`, then press the knob to select.
 
 ### 2. Ready the Climbers
+
 - Have both climbers step onto their start foot pads at the base of the wall.
 - The timer displays **READY** and the green indicators illuminate.
 
 ### 3. Start the Sequence
+
 - Click **START** in the Web App, or press **Button 0 (Action)** on the hardware station.
 
 ---
@@ -66,6 +70,7 @@ Here is exactly what the timer does during a speed heat:
 | **Top Hit** | `WINNER` (Green) | Clear confirmation chime | Climber hits top pad. Their final time is locked in immediately. |
 
 ### False Start Handling
+
 - If a climber's foot leaves the start pad within **100 ms** after the GO tone (or before it), the timer detects a **FALSE START**.
 - A low warning buzz sounds, the lane turns **RED**, and the screen displays `FALSE`.
 

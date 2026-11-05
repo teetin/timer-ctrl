@@ -17,6 +17,7 @@
 ## Mikä on Boulder-tila?
 
 Boulder-tila automatisoi ryhmä- ja kisarotaatiot:
+
 - Kiipeilijällä on määrätty aika kiivetä reittiä (esim. 4 minuuttia).
 - Ajan päättyessä alkaa lepo-/vaihtojakso (esim. 4 minuuttia tai 15 sekuntia), jolloin siirrytään seuraavalle boulderille tai vuoro vaihtuu.
 - Selkeät äänimerkit varoittavat ajan vähenemisestä, joten tiedät tarkalleen milloin on viimeisen yrityksen aika ilman kellon tuijottamista.
@@ -26,16 +27,19 @@ Boulder-tila automatisoi ryhmä- ja kisarotaatiot:
 ## Aktivointi ja käynnistys
 
 ### 1. Valitse Boulder-tila
+
 - **Puhelimella / Sovelluksessa**: Valitse valikosta *Climb Mode* -kohdasta **Boulder**.
 - **Ajastinyksiköstä**: Käännä nuppi kohtaan `BOULDER` ja paina vahvistaaksesi.
 
 ### 2. Aseta kiipeily- ja lepoajat
+
 - Määritä sovelluksesta:
-  - **Climb Duration**: Aika seinällä (esim. `240` sekuntia eli 4 minuuttia).
-  - **Transition Duration**: Lepoaika tai siirtymäaika (esim. `240` sekuntia tai `15` sekuntia).
-  - **Initial Warning**: Lähtölaskenta ennen ensimmäisen kierroksen alkua (esim. `15` sekuntia).
+    - **Climb Duration**: Aika seinällä (esim. `240` sekuntia eli 4 minuuttia).
+    - **Transition Duration**: Lepoaika tai siirtymäaika (esim. `240` sekuntia tai `15` sekuntia).
+    - **Initial Warning**: Lähtölaskenta ennen ensimmäisen kierroksen alkua (esim. `15` sekuntia).
 
 ### 3. Käynnistä harjoitus
+
 - Paina sovelluksesta **START** tai laitteesta **Button 0 (Action)**.
 
 ---

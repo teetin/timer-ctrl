@@ -17,6 +17,7 @@
 ## Mikä on Lead-tila?
 
 Liidikilpailuissa ja punapistetreenissä:
+
 - Kiipeilijällä on lyhyt **Valmistautumisaika** (tyypillisesti 40 sekuntia) solmia kasi, tarkistaa reitin alku ja asettua seinälle.
 - Heti kiipeilyn alkaessa **Kiipeilyaika** (vakiona 6 minuuttia / 360 sekuntia) alkaa kulua alaspäin ilman häiritseviä ääniä.
 - Varoitusääni soi tasan 1 minuutin kohdalla, jotta kiipeilijä tietää rytmittää reitin yläosan ja katsuksen.
@@ -27,15 +28,18 @@ Liidikilpailuissa ja punapistetreenissä:
 ## Aktivointi ja käynnistys
 
 ### 1. Valitse Lead-tila
+
 - **Puhelimella / Sovelluksessa**: Valitse valikosta *Climb Mode* -kohdasta **Lead**.
 - **Ajastinyksiköstä**: Käännä säätönuppia kohtaan `LEAD` ja paina nuppia.
 
 ### 2. Tarkista ajat
+
 - Oletuksena Lead-tilassa on:
-  - **40 sekuntia**: Valmistautumisaika (Prep).
-  - **360 sekuntia (6:00)**: Kiipeilyaika seinällä.
+    - **40 sekuntia**: Valmistautumisaika (Prep).
+    - **360 sekuntia (6:00)**: Kiipeilyaika seinällä.
 
 ### 3. Käynnistä suoritus
+
 - Kun kiipeilijä kutsutaan seinälle, paina **START** sovelluksesta tai **Button 0 (Action)** laitteesta.
 
 ---

@@ -45,18 +45,19 @@ Korkeakontrastinen näyttö näkyy selkeästi kaukaakin kiipeilyseinältä.
 ![OLED-valikkorakenne](images/oled-menu-structure.svg)
 
 ### Näytön osiot
+
 1. **Yläpalkki**:
-   - Näyttää aktiivisen lajin (`SPEED`, `BOULDER`, `LEAD`, `CIRCUIT`, `CLOCK`).
-   - Kertoo kiertotilan (`LOOP: ON` tai `OFF`).
-   - Yhteyskuvake (`📶 Wi-Fi` tai `ᛒ BLE`).
+    - Näyttää aktiivisen lajin (`SPEED`, `BOULDER`, `LEAD`, `CIRCUIT`, `CLOCK`).
+    - Kertoo kiertotilan (`LOOP: ON` tai `OFF`).
+    - Yhteyskuvake (`📶 Wi-Fi` tai `ᛒ BLE`).
 2. **Pääaikanäyttö**:
-   - Suuret numerot näyttävät jäljellä olevan tai kuluneen ajan.
+    - Suuret numerot näyttävät jäljellä olevan tai kuluneen ajan.
 3. **Ratojen tilamerkit**:
-   - `READY`: Kiipeilijät lähtölevyillä, valmiina.
-   - `RACING`: Kello käynnissä.
-   - `WIN`: Kiipeilijä kosketti toppilevyä (voittoaika lukittu).
-   - `FALSE`: Varaslähtö rekisteröity.
-   - `FALL`: Kiipeilijä pudonnut.
+    - `READY`: Kiipeilijät lähtölevyillä, valmiina.
+    - `RACING`: Kello käynnissä.
+    - `WIN`: Kiipeilijä kosketti toppilevyä (voittoaika lukittu).
+    - `FALSE`: Varaslähtö rekisteröity.
+    - `FALL`: Kiipeilijä pudonnut.
 
 ---
 

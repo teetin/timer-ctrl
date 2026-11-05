@@ -9,15 +9,20 @@ Welcome to the **T2Climb Timer User Guide**! Designed for climbers, coaches, gym
 ## ⚡ 1-Minute Quick Start
 
 ### 1. Power On the Timer
+
 Plug the T2Climb Station into any USB-C power source or battery pack. The OLED screen boots up and shows the default screen.
 
 ### 2. Connect Your Phone
+
 Open the T2Climb Web App on your smartphone:
+
 - Tap **Connect via Bluetooth** to pair instantly without any Wi-Fi passwords, or
 - Connect to the station's Wi-Fi network and tap **Connect via WiFi**.
 
-### 3. Pick Your Discipline & Go!
+### 3. Pick Your Discipline & Go
+
 Select your exercise from the top selector or on the station's knob:
+
 - ⚡ **[Speed Climbing (Nopeuskiipeily)](speed.md)**: Official IFSC 15m speed timing, false-start detection, top pad registration.
 - 🧗 **[Boulder](boulder.md)**: Timed climb and rest rotation intervals, automated beeps, 1-minute warning tones.
 - 🧗‍♂️ **[Lead](lead.md)**: 40-second prep window, silent 6-minute climbing countdown, timeout warning buzzers.

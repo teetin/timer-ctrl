@@ -25,6 +25,7 @@ Events are transmitted in the format `E<code> <ts:hex> [args...]`.
 | `30` | `EVENT_REFEREE_JUDGE_B` | Referee manual winner call Lane B | None |
 
 ### System States (`S<state>`)
+
 - `0`: IDLE
 - `1`: PRECONDITION
 - `2`: STARTER_WAIT
