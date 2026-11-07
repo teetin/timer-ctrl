@@ -61,6 +61,18 @@ export const TRANSLATIONS = {
     label_audio_volume: "Audio Volume",
     cfg_ui_lanes: "UI & Lanes",
     label_use_symbols: "Use Symbols",
+    label_idle_visuals: "Enable Idle Visuals",
+    cfg_idle_appearance: "Idle Appearance",
+    label_idle_text_color: "Timer text color",
+    label_idle_bar_color: "Phase bar color",
+    label_idle_led_color: "LED color",
+    label_idle_led_effect: "LED effect",
+    effect_off: "Off",
+    effect_solid: "Solid",
+    effect_flash: "Flash",
+    effect_pulse: "Pulse",
+    effect_rainbow: "Rainbow",
+    effect_wave: "Wave",
     label_show_tenths: "Show Tenths",
     label_console_output: "Console Output",
     label_maint_mode: "Maintenance Mode",
@@ -145,6 +157,18 @@ export const TRANSLATIONS = {
     label_audio_volume: "Äänenvoimakkuus",
     cfg_ui_lanes: "Käyttöliittymä ja radat",
     label_use_symbols: "Käytä symboleita",
+    label_idle_visuals: "Ota lepotilan visuaalit käyttöön",
+    cfg_idle_appearance: "Lepotilan ulkoasu",
+    label_idle_text_color: "Ajastimen tekstin väri",
+    label_idle_bar_color: "Vaihepalkin väri",
+    label_idle_led_color: "LEDien väri",
+    label_idle_led_effect: "LED-efekti",
+    effect_off: "Pois",
+    effect_solid: "Tasainen",
+    effect_flash: "Vilkkuva",
+    effect_pulse: "Sykkivä",
+    effect_rainbow: "Sateenkaari",
+    effect_wave: "Aalto",
     label_show_tenths: "Näytä kymmenykset",
     label_console_output: "Konsoliulostulo",
     label_maint_mode: "Huoltotila",
@@ -193,6 +217,7 @@ export class ClimbTimerApp {
       Q: 0,   // Run Mode
       X: 0,   // Tenths
       Y: 0,   // Symbols
+      Z: 0,   // Idle visuals
       B: 1,   // Countdown Beeps (0: Off, 1: On)
       W: 0,   // Waveform
       K: 0,   // Maint Mode
@@ -205,6 +230,7 @@ export class ClimbTimerApp {
       theme: 0,
       console: false,
     };
+    this.idlePalette = null;
 
     this.systemState = 0;
     this.displayState = 'idle';
@@ -351,6 +377,17 @@ export class ClimbTimerApp {
       this.config.U = val;
       this.sendConfig('U', val);
       this.applyTheme();
+      this.loadIdlePalette();
+    });
+
+    document.getElementById('idleVisualControls')?.addEventListener('change', (e) => {
+      const input = e.target.closest('[data-idle-field]');
+      if (!input || !this.idlePalette) return;
+      const field = input.dataset.idleField;
+      this.idlePalette[field] = field === 'effect'
+        ? parseInt(input.value, 10)
+        : this.hexToRgb565(input.value);
+      this.saveIdlePalette();
     });
 
     const immediateConfigs = {
@@ -359,6 +396,7 @@ export class ClimbTimerApp {
       'cfg-init-trans': 'N',
       'cfg-vol': 'V',
       'cfg-symbols': 'Y',
+      'cfg-idle-visuals': 'Z',
       'cfg-tenths': 'X',
       'cfg-maintenance': 'K',
       'cfg-assigned-lane': 'A',
@@ -540,6 +578,18 @@ export class ClimbTimerApp {
   handleLine(line) {
     if (!line) return;
     this.terminal?.print('Recv: ' + line, 'received');
+
+    if (line.startsWith('COLOR ')) {
+      const values = line.split(/\s+/).slice(1).map(Number);
+      if (values.length === 6 && values.every(Number.isFinite)) {
+        const [theme, code, text, bar, led, effect] = values;
+        if (theme === Number(this.config.theme) && code === 7) {
+          this.idlePalette = { text, bar, led, effect };
+          this.renderIdlePalette();
+        }
+      }
+      return;
+    }
 
     if (line.startsWith('circ_seq') || line.startsWith('OK circ_seq')) {
       const seq = line.replace(/^(OK\s+)?circ_seq\s*/, '').trim();
@@ -740,7 +790,8 @@ export class ClimbTimerApp {
       12: 'K', // CFG_TYPE_MAINT_EN
       13: 'A', // CFG_TYPE_LANE_ASSIGN
       18: 'N', // CFG_TYPE_INIT_TRANS_MS
-      19: 'M'  // CFG_TYPE_CLIMB_MODE
+      19: 'M', // CFG_TYPE_CLIMB_MODE
+      22: 'Z'  // CFG_TYPE_IDLE_VISUALS
     };
 
     const key = mapping[type];
@@ -796,6 +847,7 @@ export class ClimbTimerApp {
     this.updateTimerPreview();
     this.updateSymbolUI();
     this.updateTimerTextFromMs();
+    if (context === 'G' || args.U !== undefined) this.loadIdlePalette();
   }
 
   parseStatus(data) {
@@ -988,6 +1040,42 @@ export class ClimbTimerApp {
     el.style.color = color;
   }
 
+  async loadIdlePalette() {
+    if (!this.transport?.isConnected()) return;
+    const theme = parseInt(this.config.theme, 10) || 0;
+    await this.sendTerminalCommand(`COLOR ${theme} 7`);
+  }
+
+  async saveIdlePalette() {
+    if (!this.idlePalette) return;
+    const theme = parseInt(this.config.theme, 10) || 0;
+    const { text, bar, led, effect } = this.idlePalette;
+    await this.sendTerminalCommand(`COLOR ${theme} 7 ${text} ${bar} ${led} ${effect}`);
+  }
+
+  renderIdlePalette() {
+    if (!this.idlePalette) return;
+    document.getElementById('cfg-idle-text-color').value = this.rgb565ToHex(this.idlePalette.text);
+    document.getElementById('cfg-idle-bar-color').value = this.rgb565ToHex(this.idlePalette.bar);
+    document.getElementById('cfg-idle-led-color').value = this.rgb565ToHex(this.idlePalette.led);
+    document.getElementById('cfg-idle-led-effect').value = this.idlePalette.effect;
+  }
+
+  rgb565ToHex(value) {
+    const red = Math.round(((value >> 11) & 0x1f) * 255 / 31);
+    const green = Math.round(((value >> 5) & 0x3f) * 255 / 63);
+    const blue = Math.round((value & 0x1f) * 255 / 31);
+    return `#${[red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  hexToRgb565(value) {
+    const hex = value.replace('#', '');
+    const red = parseInt(hex.slice(0, 2), 16);
+    const green = parseInt(hex.slice(2, 4), 16);
+    const blue = parseInt(hex.slice(4, 6), 16);
+    return ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3);
+  }
+
   syncFormWithConfig() {
     const mapping = {
         'cfg-climb': 'C',
@@ -996,6 +1084,7 @@ export class ClimbTimerApp {
         'cfg-mode': 'M',
         'cfg-vol': 'V',
         'cfg-symbols': 'Y',
+        'cfg-idle-visuals': 'Z',
         'cfg-tenths': 'X',
         'cfg-maintenance': 'K',
         'cfg-assigned-lane': 'A',

@@ -699,6 +699,35 @@ details[open] summary {
   margin: 8px 0;
 }
 
+.idle-visual-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 16px;
+}
+
+.idle-visual-controls label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.idle-visual-controls input[type="color"] {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 36px;
+  padding: 2px;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 4px;
+}
+
+.idle-visual-controls select {
+  flex: 1;
+  min-width: 100px;
+}
+
 .config-actions {
   display: flex;
   gap: 12px;

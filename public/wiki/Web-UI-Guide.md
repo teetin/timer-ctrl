@@ -70,4 +70,6 @@ Tap **⚙️ Configuration** at the bottom to adjust your session settings. Chan
 Customize how the timer looks on your screen:
 - **Show Tenths**: Displays tenths of seconds (e.g. `12.4s`).
 - **UI Theme**: Switch between **Pro Dark** (high contrast for outdoor/bright gyms) and **IFSC Official Colors**.
+- **Enable Idle Visuals**: Turn on the idle presentation with the checkbox. Open **Idle Appearance** to select timer text, HUB75 bar, and LED colors plus the LED effect. These values are saved for the selected UI theme.
+- **Console / Remote Configuration**: Read or set the toggle with `config idle_visuals`, `config idle_visuals 1`, or `config idle_visuals 0`; the terminal/BLE commands are `CZ1` and `CZ0`. The enable setting is persisted and synchronized over CAN.
 - **Sync System Time**: Tap **🕒 Sync System Time with Browser** to update the timer box's clock to your exact phone time.

@@ -209,6 +209,9 @@
                                 <input type="checkbox" id="cfg-symbols" /> <span data-i18n="label_use_symbols">Use Symbols</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="cfg-idle-visuals" /> <span data-i18n="label_idle_visuals">Enable Idle Visuals</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                 <input type="checkbox" id="cfg-tenths" /> <span data-i18n="label_show_tenths">Show Tenths</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -223,6 +226,25 @@
                                 <option value="0" data-i18n="theme_dark">Pro Dark (High Contrast)</option>
                                 <option value="1" data-i18n="theme_ifsc">IFSC Official Colors</option>
                             </select>
+
+                            <details>
+                                <summary data-i18n="cfg_idle_appearance">Idle Appearance</summary>
+                                <div id="idleVisualControls" class="config-group idle-visual-controls">
+                                    <label><span data-i18n="label_idle_text_color">Timer text color</span><input type="color" id="cfg-idle-text-color" data-idle-field="text" /></label>
+                                    <label><span data-i18n="label_idle_bar_color">Phase bar color</span><input type="color" id="cfg-idle-bar-color" data-idle-field="bar" /></label>
+                                    <label><span data-i18n="label_idle_led_color">LED color</span><input type="color" id="cfg-idle-led-color" data-idle-field="led" /></label>
+                                    <label><span data-i18n="label_idle_led_effect">LED effect</span>
+                                        <select id="cfg-idle-led-effect" data-idle-field="effect">
+                                            <option value="0" data-i18n="effect_off">Off</option>
+                                            <option value="1" data-i18n="effect_solid">Solid</option>
+                                            <option value="2" data-i18n="effect_flash">Flash</option>
+                                            <option value="3" data-i18n="effect_pulse">Pulse</option>
+                                            <option value="4" data-i18n="effect_rainbow">Rainbow</option>
+                                            <option value="5" data-i18n="effect_wave">Wave</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </details>
 
                             <label data-i18n="label_active_lanes">Active Lanes</label>
                             <div style="display: flex; gap: 20px; margin: 8px 0;">
