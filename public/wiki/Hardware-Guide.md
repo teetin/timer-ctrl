@@ -45,18 +45,19 @@ The OLED screen is high-contrast and readable from across the training area.
 ![OLED Menu Structure & Layout](images/oled-menu-structure.svg)
 
 ### Screen Elements
+
 1. **Header Bar**:
-   - Shows the active discipline (`SPEED`, `BOULDER`, `LEAD`, `CIRCUIT`, `CLOCK`).
-   - Shows loop status (`LOOP: ON` or `OFF`).
-   - Shows connection icon (`📶 Wi-Fi` or `ᛒ BLE`).
+    - Shows the active discipline (`SPEED`, `BOULDER`, `LEAD`, `CIRCUIT`, `CLOCK`).
+    - Shows loop status (`LOOP: ON` or `OFF`).
+    - Shows connection icon (`📶 Wi-Fi` or `ᛒ BLE`).
 2. **Main Number Readout**:
-   - High-visibility digits showing time remaining or elapsed time.
+    - High-visibility digits showing time remaining or elapsed time.
 3. **Lane Status Badges**:
-   - `READY`: Athletes on pads, ready to start.
-   - `RACING`: Timer is actively running.
-   - `WIN`: Climber touched top pad (winning time locked).
-   - `FALSE`: False start detected on start pad.
-   - `FALL`: Climber fell off route.
+    - `READY`: Athletes on pads, ready to start.
+    - `RACING`: Timer is actively running.
+    - `WIN`: Climber touched top pad (winning time locked).
+    - `FALSE`: False start detected on start pad.
+    - `FALL`: Climber fell off route.
 
 ---
 

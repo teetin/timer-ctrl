@@ -17,6 +17,7 @@ The **Lead** mode is built for sport and lead climbing attempts according to IFS
 ## What is Lead Mode?
 
 In lead climbing competitions and structured redpoint sessions:
+
 - The climber gets a short **Preparation Period** (typically 40 seconds) to tie in, inspect the first clips, and step up to the wall.
 - Once the climb begins, the **Climb Window** (standard 6 minutes / 360 seconds) starts silently counting down.
 - A warning tone alerts you when 1 minute remains so you can pace your final sequence.
@@ -27,15 +28,18 @@ In lead climbing competitions and structured redpoint sessions:
 ## How to Activate & Start
 
 ### 1. Select Lead Mode
+
 - **From Phone / Web UI**: Open the menu, select **Lead** under *Climb Mode*.
 - **From Hardware Station**: Turn the rotary knob to `LEAD` and press to select.
 
 ### 2. Check the Climb & Prep Times
+
 - By default, Lead mode uses:
-  - **40 seconds**: Initial Preparation window.
-  - **360 seconds (6:00)**: Climbing window.
+    - **40 seconds**: Initial Preparation window.
+    - **360 seconds (6:00)**: Climbing window.
 
 ### 3. Start the Attempt
+
 - When the athlete is called, press **START** on the Web UI or **Button 0 (Action)** on the station.
 
 ---

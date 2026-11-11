@@ -9,15 +9,20 @@ Tervetuloa **T2Climb Ajastimen Käyttöohjeeseen**! Suunniteltu kiipeilijöille,
 ## ⚡ 1 minuutin Pikaopas
 
 ### 1. Kytke virta ajastimeen
+
 Liitä T2Climb-ohjausyksikkö USB-C-virtalähteeseen tai varavirtalähteeseen. OLED-näyttö käynnistyy ja siirtyy oletusnäkymään.
 
 ### 2. Yhdistä puhelimesi
+
 Avaa T2Climb-selainsovellus älypuhelimellasi:
+
 - Napauta **Connect via Bluetooth** yhdistääksesi laitteeseen heti ilman Wi-Fi-verkkoja tai salasanoja, tai
 - Yhdistä laitteen luomaan Wi-Fi-verkkoon ja valitse **Connect via WiFi**.
 
-### 3. Valitse laji ja aloita!
+### 3. Valitse laji ja aloita
+
 Valitse kiipeilylaji sovelluksen yläreunasta tai pyöritä ajastinyksikön säätönuppia:
+
 - ⚡ **[Nopeuskiipeily](speed.md)**: Virallinen IFSC 15m nopeuskiipeilyn ajanotto, varaslähdön tunnistus ja yläkosketuslevyt.
 - 🧗 **[Boulder](boulder.md)**: Ajastetut kiipeily- ja lepointervallit, automaattiset äänimerkit ja 1 minuutin varoitusääni.
 - 🧗‍♂️ **[Lead](lead.md)**: 40 sekunnin valmistautumisaika, hiljainen 6 minuutin kiipeilyaika ja aikarajan hälytysäänet.

@@ -53,7 +53,8 @@ The Web UI includes a built-in interactive Debug Terminal accessible by clicking
 
 ![Debug Terminal Drawer](images/web-ui-terminal.png)
 
-### Features:
+### Features
+
 - Real-time logging of outbound (`TX >`) and inbound (`RX <`) serial frames with millisecond timestamps.
 - Direct command entry box for sending raw G-code strings.
 - **Save Log**: Exports formatted log history to a `.txt` file for telemetry diagnosis.

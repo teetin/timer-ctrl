@@ -28,11 +28,11 @@ A web-based terminal for interacting with BLE devices that support Nordic UART S
 3. Click "Connect to Device" and select your BLE device from the popup dialog
 
 4. Once connected, you can:
-   - Send messages using the input field
-   - View received messages in the terminal
-   - Clear the terminal using the "Clear Terminal" button
-   - Save logs to a file using the "Save Log" button
-   - Disconnect from the device using the "Disconnect" button
+    - Send messages using the input field
+    - View received messages in the terminal
+    - Clear the terminal using the "Clear Terminal" button
+    - Save logs to a file using the "Save Log" button
+    - Disconnect from the device using the "Disconnect" button
 
 ## Nordic UART Service (NUS) UUIDs
 

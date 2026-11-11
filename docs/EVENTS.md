@@ -5,6 +5,7 @@ The T2Timer ecosystem is built on a unified, event-driven architecture. Events r
 ## Transport Layers
 
 Events are mirrored across three primary transport layers:
+
 1. **CAN Bus**: Binary protocol for inter-node communication.
 2. **BLE Serial (NUS)**: G-code style text protocol for mobile apps.
 3. **HTTP/SSE**: Server-Sent Events stream for web dashboards.
@@ -21,6 +22,7 @@ Standardized format for BLE and HTTP/SSE:
 - `[args...]`: Keyed parameters (G-code style) or a single metadata value.
 
 ### Common Keys
+
 | Key | Type | Description |
 | :--- | :--- | :--- |
 | `M` | Hex | Generic 32-bit Metadata / Mode |
@@ -64,33 +66,38 @@ Standardized format for BLE and HTTP/SSE:
 ## Command Reference
 
 ### Configuration (`C`)
+
 Update one or more settings in a single line.
+
 - **Format:** `C <key><val> [<key><val> ...]`
 - **Response:** `C <key><val> [<key><val> ...]`
 - **Keys:**
-  - `M`: Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock, 4:Circuit)
-  - `C`: Climb Time (Seconds)
-  - `T`: Transition Time (Seconds)
-  - `N`: Initial Warning / Prep Time (Seconds)
-  - `V`: Volume (0-100)
-  - `Q`: Auto-Loop Enable (0/1)
-  - `X`: Show Tenths (0/1)
-  - `Y`: Use Symbols (0/1)
-  - `B`: Countdown Beeps (0/1)
-  - `W`: Waveform (0:Sine, 1:Square)
-  - `H`: Lane A Enable (0/1)
-  - `J`: Lane B Enable (0/1)
-  - `K`: Maint Mode (0/1)
-  - `A`: Assigned Lane (0:Both, 1:A, 2:B)
+    - `M`: Climb Mode (0:Speed, 1:Boulder, 2:Lead, 3:Clock, 4:Circuit)
+    - `C`: Climb Time (Seconds)
+    - `T`: Transition Time (Seconds)
+    - `N`: Initial Warning / Prep Time (Seconds)
+    - `V`: Volume (0-100)
+    - `Q`: Auto-Loop Enable (0/1)
+    - `X`: Show Tenths (0/1)
+    - `Y`: Use Symbols (0/1)
+    - `B`: Countdown Beeps (0/1)
+    - `W`: Waveform (0:Sine, 1:Square)
+    - `H`: Lane A Enable (0/1)
+    - `J`: Lane B Enable (0/1)
+    - `K`: Maint Mode (0/1)
+    - `A`: Assigned Lane (0:Both, 1:A, 2:B)
 - **Example:** `C M1 C360 T15` -> `C M1 C360 T15`
 
 ### Getters (`G`)
+
 Retrieve one or more configuration values. Providing no keys returns the full config.
+
 - **Format:** `G [<key> ...]`
 - **Response:** `G <key><val> [<key><val> ...]`
 - **Example:** `G M V` -> `G M1 V100`
 
 ### System Commands
+
 - `S`: Get Status. Response: `S I<id> M<mode> Q<runmode>`
 - `R`: Reset State Machine. Response: `R OK`
 - `!`: Reboot Hardware. Response: `! OK`

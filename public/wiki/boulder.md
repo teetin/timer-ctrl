@@ -17,6 +17,7 @@ The **Boulder** mode runs timed climbing and rest intervals. It is ideal for off
 ## What is Boulder Mode?
 
 Boulder mode automates training rotations:
+
 - Climbers get a set amount of time to attempt a boulder problem (e.g. 4 minutes).
 - When time expires, a rest/transition interval begins (e.g. 4 minutes or 15 seconds) so the next climber can step up or rotate to the next boulder.
 - Audio beeps warn climbers when time is running out, so you know exactly when to make your final attempt without having to stare at the clock.
@@ -26,16 +27,19 @@ Boulder mode automates training rotations:
 ## How to Activate & Start
 
 ### 1. Select Boulder Mode
+
 - **From Phone / Web UI**: Open the menu, choose **Boulder** under *Climb Mode*.
 - **From Hardware Station**: Rotate the knob to `BOULDER` and press to confirm.
 
 ### 2. Set Your Times
+
 - In the Web App configuration, set:
-  - **Climb Duration**: Time on the boulder (e.g. `240` seconds for 4 minutes).
-  - **Transition Duration**: Rest between problems (e.g. `240` seconds or `15` seconds).
-  - **Initial Warning**: Countdown before the first round begins (e.g. `15` seconds).
+    - **Climb Duration**: Time on the boulder (e.g. `240` seconds for 4 minutes).
+    - **Transition Duration**: Rest between problems (e.g. `240` seconds or `15` seconds).
+    - **Initial Warning**: Countdown before the first round begins (e.g. `15` seconds).
 
 ### 3. Start the Session
+
 - Click **START** in the Web App or press **Button 0 (Action)** on the station.
 
 ---

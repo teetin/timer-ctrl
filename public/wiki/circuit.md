@@ -17,6 +17,7 @@ The **Circuit / Intervals** mode allows climbers and coaches to run structured H
 ## What is Interval / Circuit Mode?
 
 Whether doing 7:3 repeaters on a hangboard, 40-move continuous circuits on an endurance wall, or power-endurance boulder intervals:
+
 - You program a series of **Steps**, each with an active **Climb** duration and a **Rest** duration.
 - The timer automatically steps through each exercise pair.
 - Visual progress chips on your phone and distinct audio tones let you know exactly when to pull on and when to drop off, hands-free.
@@ -26,16 +27,25 @@ Whether doing 7:3 repeaters on a hangboard, 40-move continuous circuits on an en
 ## How to Activate & Start
 
 ### 1. Select Circuit Mode
+
 - **From Phone / Web UI**: Open the menu, select **Circuit** under *Climb Mode*.
 - **From Hardware Station**: Rotate knob to `CIRCUIT` and press to select.
 
 ### 2. Check or Edit Your Steps
+
 - Open **⚙️ Configuration** and look under **📋 Circuit Training Steps**.
 - Add as many steps as you need, specifying climb and rest durations.
 
 ### 3. Start the Workout
+
 - Click **START** in the Web App or press **Button 0 (Action)** on the station.
 - An initial preparation countdown (e.g. 15 seconds) gives you time to chalk up and take position.
+
+### 4. Workout Controls & Pausing
+
+- **PAUSE**: While a circuit interval is actively running, click **PAUSE** (or press **Button 0**) to freeze the countdown when you need to brush holds, adjust fingerboard weights, or catch your breath.
+- **RESUME**: Click **RESUME** (or press **Button 0**) to continue the countdown from the exact second you stopped.
+- **RESET**: Press **RESET** (or **Button 1**) anytime to halt the circuit and reset back to the starting step.
 
 ---
 
@@ -71,14 +81,17 @@ The timer provides hands-free audio cues so you don't have to keep looking at yo
 Here are common training routines you can easily set up:
 
 ### 1. Fingerboard Repeaters (7s Hang / 3s Rest x 6)
+
 - Create 6 steps: each set to **7s Climb**, **3s Rest**.
 - Listen for the start tone to hang, and drop on the double pip.
 
 ### 2. 4x4 Power Endurance Boulder Intervals
+
 - Create 4 steps: each set to **60s Climb**, **120s Rest**.
 - Climb 4 different boulder problems back-to-back with 2 minutes rest between each.
 
 ### 3. Continuous Endurance Circuits (Pyramid)
+
 - Step 1: 30s climb / 15s rest
 - Step 2: 45s climb / 15s rest
 - Step 3: 60s climb / 30s rest

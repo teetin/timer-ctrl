@@ -127,3 +127,39 @@ test('i18n locale switching updates texts and user manual link', () => {
   expect(titleEl.textContent).toBe('T2Climb Ajastin');
   expect(btnStart.textContent).toBe('START');
 });
+
+test('Circuit mode updates button labels for play, pause, and resume', () => {
+  const btnStart = document.createElement('button');
+  btnStart.id = 'btn-start';
+  document.body.appendChild(btnStart);
+
+  const btnReset = document.createElement('button');
+  btnReset.id = 'btn-reset';
+  document.body.appendChild(btnReset);
+
+  const app = new ClimbTimerApp();
+  app.setLocale('en');
+  app.updateModeUI(4); // Circuit mode
+
+  // Initially idle
+  expect(btnStart.textContent).toBe('PLAY');
+
+  // When running
+  app.displayState = 'running';
+  app.updateSymbolUI();
+  expect(btnStart.textContent).toBe('PAUSE');
+
+  // When paused
+  app.displayState = 'paused';
+  app.systemState = 9;
+  app.updateSymbolUI();
+  expect(btnStart.textContent).toBe('RESUME');
+
+  // In Finnish
+  app.setLocale('fi');
+  expect(btnStart.textContent).toBe('JATKA');
+
+  app.displayState = 'running';
+  app.updateSymbolUI();
+  expect(btnStart.textContent).toBe('TAUKO');
+});
