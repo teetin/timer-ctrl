@@ -36,7 +36,7 @@ The main display gives you full control of the current climb session:
 - **Large Timer Display**: Shows active time remaining (countdown) or elapsed time (stopwatch / speed).
 - **Mode Badge**: Shows current discipline (`Speed`, `Boulder`, `Lead`, `Circuit`, `Clock`).
 - **Control Buttons**:
-    - **START**: Begins the countdown or starts the stopwatch.
+    - **START / PLAY / PAUSE / RESUME**: Starts the countdown or stopwatch. In Boulder and Circuit modes, clicking this button while running pauses the timer, and clicking again resumes the workout.
     - **RESET**: Stops the clock and resets back to the initial preparation state.
     - **ABORT**: (Speed mode) Halts a false start or race attempt immediately.
     - **FINISH**: (Boulder / Lead) Ends the current attempt early and moves to the rest period.

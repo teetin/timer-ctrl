@@ -41,6 +41,12 @@ Whether doing 7:3 repeaters on a hangboard, 40-move continuous circuits on an en
 - Click **START** in the Web App or press **Button 0 (Action)** on the station.
 - An initial preparation countdown (e.g. 15 seconds) gives you time to chalk up and take position.
 
+### 4. Workout Controls & Pausing
+
+- **PAUSE**: While a circuit interval is actively running, click **PAUSE** (or press **Button 0**) to freeze the countdown when you need to brush holds, adjust fingerboard weights, or catch your breath.
+- **RESUME**: Click **RESUME** (or press **Button 0**) to continue the countdown from the exact second you stopped.
+- **RESET**: Press **RESET** (or **Button 1**) anytime to halt the circuit and reset back to the starting step.
+
 ---
 
 ## How to Build Your Workout

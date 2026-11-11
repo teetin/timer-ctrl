@@ -36,7 +36,7 @@ Päänäytöltä ohjaat harjoitusta vaivattomasti:
 - **Suuri aikanäyttö**: Näyttää jäljellä olevan ajan (laskuri) tai kuluneen ajan (sekuntikello / nopeuskiipeily).
 - **Lajimerkki**: Kertoo valitun tilan (`Speed`, `Boulder`, `Lead`, `Circuit`, `Clock`).
 - **Toimintopainikkeet**:
-    - **START**: Käynnistää ajastimen tai sekuntikellon.
+    - **START / TOISTA / TAUKO / JATKA**: Käynnistää ajastimen tai sekuntikellon. Boulder- ja Intervallit-tiloissa painikkeen painaminen suorituksen aikana asettaa kellon tauolle (TAUKO), ja uusi painallus jatkaa suoritusta (JATKA).
     - **RESET**: Pysäyttää kellon ja palauttaa alkuvalmisteluun.
     - **ABORT**: (Nopeuskiipeily) Keskeyttää lähdön välittömästi.
     - **FINISH**: (Boulder / Lead) Päättää kiipeilyn heti ja siirtyy lepojaksolle.

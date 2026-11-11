@@ -22,6 +22,9 @@ export const TRANSLATIONS = {
     chip_wave: "WAVE",
     chip_ui: "UI",
     btn_start: "START",
+    btn_play: "PLAY",
+    btn_pause: "PAUSE",
+    btn_resume: "RESUME",
     btn_play_pause: "PLAY / PAUSE",
     btn_reset: "RESET",
     btn_abort: "ABORT",
@@ -106,6 +109,9 @@ export const TRANSLATIONS = {
     chip_wave: "AALTO",
     chip_ui: "NÄYTTÖ",
     btn_start: "START",
+    btn_play: "TOISTA",
+    btn_pause: "TAUKO",
+    btn_resume: "JATKA",
     btn_play_pause: "TOISTA / TAUKO",
     btn_reset: "NOLLAA",
     btn_abort: "KESKEYTÄ",
@@ -174,6 +180,49 @@ export const TRANSLATIONS = {
     loop_on: "KIERTO PÄÄLLÄ",
     loop_off: "POIS"
   }
+};
+
+export const DISCIPLINE_BUTTON_MAP = {
+  // 0: IFSC Speed
+  0: {
+    start: { labelKey: 'btn_start', icon: '▶ ', event: 6 },
+    reset: { labelKey: 'btn_reset', icon: '⟲ ', event: 9 },
+    abort: { labelKey: 'btn_abort', icon: '⏹ ', event: 8, visible: true },
+    finish: { visible: false },
+    judging: { visible: true },
+  },
+  // 1: Boulder
+  1: {
+    start: { labelKey: 'btn_play_pause', icon: '▶ ', event: 6, stateAware: true },
+    reset: { labelKey: 'btn_reset', icon: '⟲ ', event: 9 },
+    abort: { visible: false },
+    finish: { labelKey: 'btn_finish', icon: '🏁 ', event: 7, visible: true },
+    judging: { visible: false },
+  },
+  // 2: Lead
+  2: {
+    start: { labelKey: 'btn_start', icon: '▶ ', event: 6 },
+    reset: { labelKey: 'btn_reset', icon: '⟲ ', event: 9 },
+    abort: { visible: false },
+    finish: { labelKey: 'btn_finish', icon: '🏁 ', event: 7, visible: true },
+    judging: { visible: false },
+  },
+  // 3: Clock
+  3: {
+    start: { labelKey: 'btn_start', icon: '▶ ', event: 6, stateAware: true },
+    reset: { labelKey: 'btn_reset', icon: '⟲ ', event: 9 },
+    abort: { visible: false },
+    finish: { visible: false },
+    judging: { visible: false },
+  },
+  // 4: Circuit / Intervals
+  4: {
+    start: { labelKey: 'btn_play_pause', icon: '▶ ', event: 6, stateAware: true },
+    reset: { labelKey: 'btn_reset', icon: '⟲ ', event: 9 },
+    abort: { visible: false },
+    finish: { visible: false },
+    judging: { visible: false },
+  },
 };
 
 export class ClimbTimerApp {
@@ -852,6 +901,7 @@ export class ClimbTimerApp {
 
     this.systemState = stateIdx;
     this.updateTimerPreview();
+    this.updateSymbolUI();
     this.updateTimerTextFromMs();
   }
 
@@ -886,11 +936,13 @@ export class ClimbTimerApp {
   pauseDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'paused';
+    this.updateSymbolUI();
   }
 
   finishDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'finished';
+    this.updateSymbolUI();
     this.updateTimerTextFromMs();
   }
 
@@ -898,6 +950,7 @@ export class ClimbTimerApp {
     this.clearDisplayInterval();
     this.displayState = 'idle';
     this.displayElapsedMs = 0;
+    this.updateSymbolUI();
     this.updateTimerTextFromMs();
   }
 
@@ -1085,6 +1138,17 @@ export class ClimbTimerApp {
     const modeClass = ['speed', 'boulder', 'lead', 'clock', 'circuit'][this.currentMode] || 'speed';
     document.body.className = `mode-${modeClass}`;
 
+    // Apply button visibility from discipline mapping
+    const mapping = DISCIPLINE_BUTTON_MAP[this.currentMode] || DISCIPLINE_BUTTON_MAP[0];
+    const abortBtn = document.getElementById('btn-abort');
+    if (abortBtn) abortBtn.classList.toggle('hidden', !mapping.abort?.visible);
+
+    const finishBtn = document.getElementById('btn-finish');
+    if (finishBtn) finishBtn.classList.toggle('hidden', !mapping.finish?.visible);
+
+    const judgingSection = document.querySelector('.judging-section');
+    if (judgingSection) judgingSection.classList.toggle('hidden', !mapping.judging?.visible);
+
     document.querySelectorAll('.mode-speed-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 0));
     document.querySelectorAll('.mode-boulder-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 1));
 
@@ -1097,12 +1161,52 @@ export class ClimbTimerApp {
   }
 
   updateSymbolUI() {
-    const prefix = this.config.Y ? '▶ ' : '';
-    const startLabel = this.currentMode === 1 ? this.t('btn_play_pause') : this.t('btn_start');
+    const mapping = DISCIPLINE_BUTTON_MAP[this.currentMode] || DISCIPLINE_BUTTON_MAP[0];
+    const isPaused = this.systemState === 9 || this.displayState === 'paused';
+    const isRunning = this.displayState === 'running';
+
+    let startLabelKey = mapping.start?.labelKey || 'btn_start';
+    let startIcon = mapping.start?.icon || '▶ ';
+
+    if (mapping.start?.stateAware) {
+      if (isRunning) {
+        startLabelKey = 'btn_pause';
+        startIcon = '⏸ ';
+      } else if (isPaused) {
+        startLabelKey = 'btn_resume';
+        startIcon = '▶ ';
+      } else {
+        startLabelKey = (this.currentMode === 1 || this.currentMode === 4) ? 'btn_play' : 'btn_start';
+        startIcon = '▶ ';
+      }
+    }
+
     const startBtn = document.getElementById('btn-start');
-    if (startBtn) startBtn.textContent = `${prefix}${startLabel}`;
+    if (startBtn) {
+      const prefix = this.config.Y ? startIcon : '';
+      startBtn.textContent = `${prefix}${this.t(startLabelKey)}`;
+    }
+
     const resetBtn = document.getElementById('btn-reset');
-    if (resetBtn) resetBtn.textContent = `${this.config.Y ? '⟲ ' : ''}${this.t('btn_reset')}`;
+    if (resetBtn) {
+      const resetLabelKey = mapping.reset?.labelKey || 'btn_reset';
+      const resetPrefix = this.config.Y ? (mapping.reset?.icon || '⟲ ') : '';
+      resetBtn.textContent = `${resetPrefix}${this.t(resetLabelKey)}`;
+    }
+
+    const abortBtn = document.getElementById('btn-abort');
+    if (abortBtn && mapping.abort?.visible) {
+      const abortLabelKey = mapping.abort?.labelKey || 'btn_abort';
+      const abortPrefix = this.config.Y ? (mapping.abort?.icon || '⏹ ') : '';
+      abortBtn.textContent = `${abortPrefix}${this.t(abortLabelKey)}`;
+    }
+
+    const finishBtn = document.getElementById('btn-finish');
+    if (finishBtn && mapping.finish?.visible) {
+      const finishLabelKey = mapping.finish?.labelKey || 'btn_finish';
+      const finishPrefix = this.config.Y ? (mapping.finish?.icon || '🏁 ') : '';
+      finishBtn.textContent = `${finishPrefix}${this.t(finishLabelKey)}`;
+    }
   }
 
   async syncDeviceTime() {

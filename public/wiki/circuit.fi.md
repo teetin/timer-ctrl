@@ -41,6 +41,12 @@ Teitpä sitten 7:3-toistoja otelaudalla, 40 muuvin kestävyystraverssia tai voim
 - Paina **START** sovelluksesta tai **Button 0 (Action)** laitteesta.
 - Alkuvalmistautumisaika (esim. 15 s) antaa aikaa mankata kädet ja asettua otelaudan alle.
 
+### 4. Harjoituksen ohjaus ja tauottaminen
+
+- **TAUKO (PAUSE)**: Kun harjoitus on käynnissä, paina **TAUKO** (tai laitteen **Button 0**) pysäyttääksesi kellon halutessasi huilata pidempään, säätää lisäpainoja tai harjata otteita.
+- **JATKA (RESUME)**: Paina **JATKA** (tai **Button 0**) jatkaaksesi intervallia suoraan siitä mihin jäit.
+- **NOLLAA (RESET)**: Paina **NOLLAA** (tai **Button 1**) milloin tahansa palauttaaksesi ajastimen alkuun.
+
 ---
 
 ## Miten luot oman harjoituksen
