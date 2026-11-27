@@ -7,7 +7,8 @@ let window;
 let document;
 
 beforeEach(() => {
-  dom = new JSDOM(`
+  dom = new JSDOM(
+    `
     <!DOCTYPE html>
     <html>
       <body>
@@ -27,7 +28,9 @@ beforeEach(() => {
         <div id="flowVisualizer"></div>
       </body>
     </html>
-  `, { url: "http://localhost" });
+  `,
+    { url: 'http://localhost' }
+  );
 
   window = dom.window;
   document = window.document;
@@ -125,5 +128,55 @@ test('i18n locale switching updates texts and user manual link', () => {
   app.setLocale('fi');
   expect(manualLink.href).toContain('docs/fi');
   expect(titleEl.textContent).toBe('T2Climb Ajastin');
-  expect(btnStart.textContent).toBe('START');
+  expect(btnStart.textContent).toBe('Käynnistä ajastin');
+});
+
+test('event controls are enabled only for the current operating phase', () => {
+  [
+    'btn-start',
+    'btn-reset',
+    'btn-abort',
+    'btn-finish',
+    'btn-winner-a',
+    'btn-winner-b',
+    'btn-fall-a',
+    'btn-fall-b',
+  ].forEach((id) => {
+    const button = document.createElement('button');
+    button.id = id;
+    document.body.appendChild(button);
+  });
+
+  const app = new ClimbTimerApp();
+  app.connectionState = 'connected';
+  app.currentMode = 0;
+  app.systemState = 6;
+  app.displayState = 'running';
+  app.updateControlAvailability();
+
+  expect(document.getElementById('btn-start').disabled).toBe(true);
+  expect(document.getElementById('btn-reset').disabled).toBe(false);
+  expect(document.getElementById('btn-abort').disabled).toBe(false);
+  expect(document.getElementById('btn-winner-a').disabled).toBe(false);
+});
+
+test('reset and abort require a second press before sending', () => {
+  const app = new ClimbTimerApp();
+  const sentEvents = [];
+  app.sendEvent = (code, args) => sentEvents.push({ code, args });
+  app.t = (key) => key;
+
+  const notice = document.createElement('div');
+  notice.id = 'actionNotice';
+  notice.className = 'hidden';
+  document.body.appendChild(notice);
+
+  app.requestEvent(9, '', 'reset_confirm');
+  expect(sentEvents).toHaveLength(0);
+  expect(notice.textContent).toBe('reset_confirm');
+  expect(notice.classList.contains('armed')).toBe(true);
+
+  app.requestEvent(9, '', 'reset_confirm');
+  expect(sentEvents).toEqual([{ code: 9, args: '' }]);
+  expect(notice.classList.contains('hidden')).toBe(true);
 });

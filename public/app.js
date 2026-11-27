@@ -7,197 +7,281 @@ import { Terminal } from './terminal.js';
 
 export const TRANSLATIONS = {
   en: {
-    app_title: "T2Climb Timer Control",
-    disconnected: "Disconnected",
-    connected: "Connected",
-    connect_ble: "Connect via Bluetooth",
-    connect_wifi: "Connect via WiFi",
-    disconnect: "Disconnect",
-    label_mode: "Mode",
-    label_loop: "Loop",
-    chip_trans: "TRANS",
-    chip_climb: "CLIMB",
-    chip_state: "STATE",
-    chip_beeps: "BEEPS",
-    chip_wave: "WAVE",
-    chip_ui: "UI",
-    btn_start: "START",
-    btn_play_pause: "PLAY / PAUSE",
-    btn_reset: "RESET",
-    btn_abort: "ABORT",
-    btn_finish: "FINISH",
-    judging_override: "Judging Override",
-    winner_a: "WINNER A",
-    winner_b: "WINNER B",
-    fall_a: "FALL A",
-    fall_b: "FALL B",
-    btn_configuration: "⚙️ Configuration",
-    btn_debug_terminal: "🔧 Debug Terminal",
-    cfg_title: "Configuration",
-    cfg_climb_settings: "Climb Settings",
-    label_climb_mode: "Climb Mode",
-    mode_speed: "IFSC Speed",
-    mode_boulder: "Boulder",
-    mode_lead: "Lead",
-    mode_clock: "Clock",
-    mode_circuit: "Circuit",
-    label_autoloop: "Enable Auto-Loop",
-    label_climb_duration: "Climb Duration (seconds)",
-    label_trans_duration: "Transition Duration (seconds)",
-    label_prep_duration: "Initial Warning / Prep Duration (seconds)",
-    cfg_circuit_steps: "📋 Circuit Training Steps",
-    th_step: "#",
-    th_climb_time: "Climb Time (s)",
-    th_rest_time: "Rest Time (s)",
-    th_action: "Action",
-    btn_add_step: "➕ Add Step",
-    btn_reset_defaults: "🔄 Reset Defaults",
-    label_raw_seq: "Raw Sequence:",
-    cfg_audio_display: "Audio & Display",
-    label_countdown_beeps: "Countdown Beeps",
-    label_audio_waveform: "Audio Waveform",
-    wave_sine: "Warm Sine (Smooth)",
-    wave_square: "Sharp Square (Aggressive)",
-    label_audio_volume: "Audio Volume",
-    cfg_ui_lanes: "UI & Lanes",
-    label_use_symbols: "Use Symbols",
-    label_idle_visuals: "Enable Idle Visuals",
-    cfg_idle_appearance: "Idle Appearance",
-    label_idle_text_color: "Timer text color",
-    label_idle_bar_color: "Phase bar color",
-    label_idle_led_color: "LED color",
-    label_idle_led_effect: "LED effect",
-    effect_off: "Off",
-    effect_solid: "Solid",
-    effect_flash: "Flash",
-    effect_pulse: "Pulse",
-    effect_rainbow: "Rainbow",
-    effect_wave: "Wave",
-    label_show_tenths: "Show Tenths",
-    label_console_output: "Console Output",
-    label_maint_mode: "Maintenance Mode",
-    label_ui_theme: "UI Theme",
-    theme_dark: "Pro Dark (High Contrast)",
-    theme_ifsc: "IFSC Official Colors",
-    label_active_lanes: "Active Lanes",
-    lane_a: "Lane A",
-    lane_b: "Lane B",
-    label_unit_assigned_lane: "Unit Assigned Lane",
-    lane_global: "Global (Both)",
-    lane_left: "Lane A (Left)",
-    lane_right: "Lane B (Right)",
-    cfg_system_timezone: "System & Timezone",
-    label_radio_mode: "Radio Mode (Communication)",
-    radio_wifi: "Wi-Fi Mode",
-    radio_ble: "Bluetooth Mode (BLE)",
-    label_tz_presets: "Timezone Presets",
-    tz_custom: "Custom POSIX String...",
-    label_posix_tz: "POSIX Timezone String",
-    btn_set_tz: "Set Timezone",
-    label_device_rtc: "Device Real-Time Clock (RTC)",
-    btn_sync_time: "🕒 Sync System Time with Browser",
-    step_prefix: "Step",
-    btn_remove: "🗑️ Remove",
-    manual_title: "User Manual",
-    loop_on: "LOOP ON",
-    loop_off: "OFF"
+    app_title: 'T2Climb Timer Control',
+    disconnected: 'Disconnected',
+    connected: 'Connected',
+    connect_ble: 'Bluetooth',
+    connect_wifi: 'Wi-Fi',
+    disconnect: 'Disconnect',
+    connection_hint: 'Connect the timer to enable event controls.',
+    connecting: 'Connecting…',
+    connection_retry: 'Try connecting again, or use the other connection method.',
+    manual_link: 'Manual',
+    close_settings: 'Close timer settings',
+    close_diagnostics: 'Close diagnostics',
+    label_mode: 'Mode',
+    label_loop: 'Loop',
+    chip_trans: 'TRANS',
+    chip_climb: 'CLIMB',
+    chip_state: 'STATE',
+    chip_beeps: 'BEEPS',
+    chip_wave: 'WAVE',
+    chip_ui: 'UI',
+    btn_start: 'Start timer',
+    btn_play_pause: 'Play / pause',
+    btn_reset: 'Reset timer',
+    btn_abort: 'Abort run',
+    btn_finish: 'Finish climb',
+    judging_override: 'Judging Override',
+    winner_a: 'Mark winner A',
+    winner_b: 'Mark winner B',
+    fall_a: 'Record fall A',
+    fall_b: 'Record fall B',
+    judging_hint: 'Judging actions become available only while a speed race is active.',
+    btn_configuration: 'Timer settings',
+    btn_debug_terminal: 'Diagnostics',
+    sequence_summary: 'Race sequence',
+    phase_ready_label: 'Ready state',
+    phase_current_label: 'Current phase',
+    timer_stopped: 'Timer stopped',
+    timer_countdown: 'Counting down',
+    timer_elapsed: 'Elapsed time',
+    phase_idle_guidance: 'Connect the timer to begin.',
+    phase_connected_guidance: 'Timer connected. Start when athletes are ready.',
+    phase_precondition_guidance:
+      'Prepare the starting position. The starter sequence will begin next.',
+    phase_starter_wait_guidance: 'Athletes should wait for the start signal.',
+    phase_beeping_guidance: 'Starting signal active. Race begins on the final beep.',
+    phase_transition_guidance: 'Transition in progress. Prepare for the next climb.',
+    phase_ready_guidance: 'Ready for the next phase.',
+    phase_racing_guidance: 'Timer running. Monitor the athletes and active lanes.',
+    phase_finished_guidance: 'Run complete. Confirm the result or reset for the next attempt.',
+    phase_false_start_guidance: 'False start recorded. Reset before the next attempt.',
+    phase_paused_guidance: 'Timer paused. Resume when the athlete and officials are ready.',
+    phase_fall_guidance: 'Fall recorded. Confirm the result before resetting.',
+    phase_splash_guidance: 'Run ended. Review the result before resetting.',
+    phase_idle: 'Ready',
+    phase_precondition: 'Preconditioning',
+    phase_starter_wait: 'On the pad',
+    phase_beeping: 'Start signal',
+    phase_transition: 'Transition',
+    phase_ready: 'Ready',
+    phase_racing: 'Climbing',
+    phase_finished: 'Finished',
+    phase_false_start: 'False start',
+    phase_paused: 'Paused',
+    phase_fall: 'Fall recorded',
+    phase_splash: 'Run ended',
+    reset_confirm: 'Press Reset timer again to clear the current attempt.',
+    abort_confirm: 'Press Abort run again to stop and clear this attempt.',
+    action_cancelled: 'Action cancelled.',
+    cfg_title: 'Configuration',
+    cfg_climb_settings: 'Climb Settings',
+    label_climb_mode: 'Climb Mode',
+    mode_speed: 'IFSC Speed',
+    mode_boulder: 'Boulder',
+    mode_lead: 'Lead',
+    mode_clock: 'Clock',
+    mode_circuit: 'Circuit',
+    label_autoloop: 'Enable Auto-Loop',
+    label_climb_duration: 'Climb Duration (seconds)',
+    label_trans_duration: 'Transition Duration (seconds)',
+    label_prep_duration: 'Initial Warning / Prep Duration (seconds)',
+    cfg_circuit_steps: '📋 Circuit Training Steps',
+    th_step: '#',
+    th_climb_time: 'Climb Time (s)',
+    th_rest_time: 'Rest Time (s)',
+    th_action: 'Action',
+    btn_add_step: '➕ Add Step',
+    btn_reset_defaults: '🔄 Reset Defaults',
+    label_raw_seq: 'Raw Sequence:',
+    cfg_audio_display: 'Audio & Display',
+    label_countdown_beeps: 'Countdown Beeps',
+    label_audio_waveform: 'Audio Waveform',
+    wave_sine: 'Warm Sine (Smooth)',
+    wave_square: 'Sharp Square (Aggressive)',
+    label_audio_volume: 'Audio Volume',
+    cfg_ui_lanes: 'UI & Lanes',
+    label_use_symbols: 'Use Symbols',
+    label_idle_visuals: 'Enable Idle Visuals',
+    cfg_idle_appearance: 'Idle Appearance',
+    label_idle_text_color: 'Timer text color',
+    label_idle_bar_color: 'Phase bar color',
+    label_idle_led_color: 'LED color',
+    label_idle_led_effect: 'LED effect',
+    effect_off: 'Off',
+    effect_solid: 'Solid',
+    effect_flash: 'Flash',
+    effect_pulse: 'Pulse',
+    effect_rainbow: 'Rainbow',
+    effect_wave: 'Wave',
+    label_show_tenths: 'Show Tenths',
+    label_console_output: 'Console Output',
+    label_maint_mode: 'Maintenance Mode',
+    label_ui_theme: 'UI Theme',
+    theme_dark: 'Pro Dark (High Contrast)',
+    theme_ifsc: 'IFSC Official Colors',
+    label_active_lanes: 'Active Lanes',
+    lane_a: 'Lane A',
+    lane_b: 'Lane B',
+    label_unit_assigned_lane: 'Unit Assigned Lane',
+    lane_global: 'Global (Both)',
+    lane_left: 'Lane A (Left)',
+    lane_right: 'Lane B (Right)',
+    cfg_system_timezone: 'System & Timezone',
+    label_radio_mode: 'Radio Mode (Communication)',
+    radio_wifi: 'Wi-Fi Mode',
+    radio_ble: 'Bluetooth Mode (BLE)',
+    label_tz_presets: 'Timezone Presets',
+    tz_custom: 'Custom POSIX String...',
+    label_posix_tz: 'POSIX Timezone String',
+    btn_set_tz: 'Set Timezone',
+    label_device_rtc: 'Device Real-Time Clock (RTC)',
+    btn_sync_time: '🕒 Sync System Time with Browser',
+    step_prefix: 'Step',
+    btn_remove: '🗑️ Remove',
+    manual_title: 'User Manual',
+    loop_on: 'LOOP ON',
+    loop_off: 'OFF',
   },
   fi: {
-    app_title: "T2Climb Ajastin",
-    disconnected: "Ei yhteyttä",
-    connected: "Yhdistetty",
-    connect_ble: "Yhdistä Bluetoothilla",
-    connect_wifi: "Yhdistä Wi-Fiin",
-    disconnect: "Katkaise yhteys",
-    label_mode: "Laji",
-    label_loop: "Kierto",
-    chip_trans: "LEPO",
-    chip_climb: "KIIPEILY",
-    chip_state: "TILA",
-    chip_beeps: "ÄÄNET",
-    chip_wave: "AALTO",
-    chip_ui: "NÄYTTÖ",
-    btn_start: "START",
-    btn_play_pause: "TOISTA / TAUKO",
-    btn_reset: "NOLLAA",
-    btn_abort: "KESKEYTÄ",
-    btn_finish: "VALMIS",
-    judging_override: "Tuomarin toiminnot",
-    winner_a: "VOITTAJA A",
-    winner_b: "VOITTAJA B",
-    fall_a: "PUTOAMINEN A",
-    fall_b: "PUTOAMINEN B",
-    btn_configuration: "⚙️ Asetukset",
-    btn_debug_terminal: "🔧 Pääte",
-    cfg_title: "Asetukset",
-    cfg_climb_settings: "Kiipeilyasetukset",
-    label_climb_mode: "Kiipeilylaji",
-    mode_speed: "Nopeuskiipeily",
-    mode_boulder: "Boulder",
-    mode_lead: "Lead",
-    mode_clock: "Kello",
-    mode_circuit: "Intervallit",
-    label_autoloop: "Jatkuva kierto (Auto-Loop)",
-    label_climb_duration: "Kiipeilyaika (sekuntia)",
-    label_trans_duration: "Lepo- / siirtymäaika (sekuntia)",
-    label_prep_duration: "Valmistautumisaika (sekuntia)",
-    cfg_circuit_steps: "📋 Intervallivaiheet",
-    th_step: "#",
-    th_climb_time: "Kiipeilyaika (s)",
-    th_rest_time: "Lepoaika (s)",
-    th_action: "Toiminto",
-    btn_add_step: "➕ Lisää vaihe",
-    btn_reset_defaults: "🔄 Palauta oletukset",
-    label_raw_seq: "Sarjakoodi:",
-    cfg_audio_display: "Äänet ja näyttö",
-    label_countdown_beeps: "Varoituspiippaukset",
-    label_audio_waveform: "Äänen aaltomuoto",
-    wave_sine: "Pehmeä sini (Warm Sine)",
-    wave_square: "Terävä kantti (Sharp Square)",
-    label_audio_volume: "Äänenvoimakkuus",
-    cfg_ui_lanes: "Käyttöliittymä ja radat",
-    label_use_symbols: "Käytä symboleita",
-    label_idle_visuals: "Ota lepotilan visuaalit käyttöön",
-    cfg_idle_appearance: "Lepotilan ulkoasu",
-    label_idle_text_color: "Ajastimen tekstin väri",
-    label_idle_bar_color: "Vaihepalkin väri",
-    label_idle_led_color: "LEDien väri",
-    label_idle_led_effect: "LED-efekti",
-    effect_off: "Pois",
-    effect_solid: "Tasainen",
-    effect_flash: "Vilkkuva",
-    effect_pulse: "Sykkivä",
-    effect_rainbow: "Sateenkaari",
-    effect_wave: "Aalto",
-    label_show_tenths: "Näytä kymmenykset",
-    label_console_output: "Konsoliulostulo",
-    label_maint_mode: "Huoltotila",
-    label_ui_theme: "Väriteema",
-    theme_dark: "Tumma (Pro Dark)",
-    theme_ifsc: "IFSC-viralliset värit",
-    label_active_lanes: "Aktiiviset radat",
-    lane_a: "Rata A",
-    lane_b: "Rata B",
-    label_unit_assigned_lane: "Ohjaimen rata",
-    lane_global: "Molemmat (Global)",
-    lane_left: "Rata A (Vasen)",
-    lane_right: "Rata B (Oikea)",
-    cfg_system_timezone: "Järjestelmä ja aikavyöhyke",
-    label_radio_mode: "Yhteystila",
-    radio_wifi: "Wi-Fi-tila",
-    radio_ble: "Bluetooth-tila (BLE)",
-    label_tz_presets: "Aikavyöhykkeet",
-    tz_custom: "Oma POSIX-merkkijono...",
-    label_posix_tz: "POSIX-aikavyöhyke",
-    btn_set_tz: "Aseta aikavyöhyke",
-    label_device_rtc: "Laitteen reaaliaikakello (RTC)",
-    btn_sync_time: "🕒 Synkronoi aika selaimesta",
-    step_prefix: "Vaihe",
-    btn_remove: "🗑️ Poista",
-    manual_title: "Käyttöohje",
-    loop_on: "KIERTO PÄÄLLÄ",
-    loop_off: "POIS"
-  }
+    app_title: 'T2Climb Ajastin',
+    disconnected: 'Ei yhteyttä',
+    connected: 'Yhdistetty',
+    connect_ble: 'Bluetooth',
+    connect_wifi: 'Wi-Fi',
+    disconnect: 'Katkaise yhteys',
+    connection_hint: 'Yhdistä ajastin ottaaksesi tapahtumapainikkeet käyttöön.',
+    connecting: 'Yhdistetään…',
+    connection_retry: 'Yritä yhteyttä uudelleen tai käytä toista yhteystapaa.',
+    manual_link: 'Ohje',
+    close_settings: 'Sulje ajastimen asetukset',
+    close_diagnostics: 'Sulje diagnostiikka',
+    label_mode: 'Laji',
+    label_loop: 'Kierto',
+    chip_trans: 'LEPO',
+    chip_climb: 'KIIPEILY',
+    chip_state: 'TILA',
+    chip_beeps: 'ÄÄNET',
+    chip_wave: 'AALTO',
+    chip_ui: 'NÄYTTÖ',
+    btn_start: 'Käynnistä ajastin',
+    btn_play_pause: 'Jatka / tauko',
+    btn_reset: 'Nollaa ajastin',
+    btn_abort: 'Keskeytä suoritus',
+    btn_finish: 'Päätä kiipeily',
+    judging_override: 'Tuomarin toiminnot',
+    winner_a: 'Merkitse A voittajaksi',
+    winner_b: 'Merkitse B voittajaksi',
+    fall_a: 'Merkitse A:n putoaminen',
+    fall_b: 'Merkitse B:n putoaminen',
+    judging_hint: 'Tuomaritoiminnot ovat käytössä vain aktiivisen nopeuskisan aikana.',
+    btn_configuration: 'Ajastimen asetukset',
+    btn_debug_terminal: 'Diagnostiikka',
+    sequence_summary: 'Suorituksen vaiheet',
+    phase_ready_label: 'Valmistelutila',
+    phase_current_label: 'Nykyinen vaihe',
+    timer_stopped: 'Ajastin pysähtynyt',
+    timer_countdown: 'Lähtölaskenta',
+    timer_elapsed: 'Kulunut aika',
+    phase_idle_guidance: 'Yhdistä ajastin aloittaaksesi.',
+    phase_connected_guidance: 'Ajastin on yhdistetty. Käynnistä, kun kilpailijat ovat valmiita.',
+    phase_precondition_guidance: 'Valmista lähtöpaikka. Lähtösarja alkaa seuraavaksi.',
+    phase_starter_wait_guidance: 'Kilpailijoiden tulee odottaa lähtömerkkiä.',
+    phase_beeping_guidance: 'Lähtömerkki soi. Suoritus alkaa viimeisellä merkkiäänellä.',
+    phase_transition_guidance: 'Vaihtoaika käynnissä. Valmistaudu seuraavaan kiipeilyyn.',
+    phase_ready_guidance: 'Valmis seuraavaan vaiheeseen.',
+    phase_racing_guidance: 'Ajastin käy. Seuraa kilpailijoita ja aktiivisia ratoja.',
+    phase_finished_guidance:
+      'Suoritus päättyi. Vahvista tulos tai nollaa seuraavaa yritystä varten.',
+    phase_false_start_guidance: 'Vilppilähtö kirjattu. Nollaa ennen seuraavaa yritystä.',
+    phase_paused_guidance: 'Ajastin keskeytetty. Jatka, kun kilpailija ja tuomarit ovat valmiita.',
+    phase_fall_guidance: 'Putoaminen kirjattu. Vahvista tulos ennen nollausta.',
+    phase_splash_guidance: 'Suoritus päättyi. Tarkista tulos ennen nollausta.',
+    phase_idle: 'Valmis',
+    phase_precondition: 'Valmistelu',
+    phase_starter_wait: 'Lähtöalustalla',
+    phase_beeping: 'Lähtömerkki',
+    phase_transition: 'Vaihtoaika',
+    phase_ready: 'Valmis',
+    phase_racing: 'Kiipeily',
+    phase_finished: 'Päättynyt',
+    phase_false_start: 'Vilppilähtö',
+    phase_paused: 'Tauko',
+    phase_fall: 'Putoaminen',
+    phase_splash: 'Suoritus päättyi',
+    reset_confirm: 'Paina Nollaa ajastin uudelleen tyhjentääksesi nykyisen suorituksen.',
+    abort_confirm: 'Paina Keskeytä suoritus uudelleen pysäyttääksesi nykyisen suorituksen.',
+    action_cancelled: 'Toiminto peruutettu.',
+    cfg_title: 'Asetukset',
+    cfg_climb_settings: 'Kiipeilyasetukset',
+    label_climb_mode: 'Kiipeilylaji',
+    mode_speed: 'Nopeuskiipeily',
+    mode_boulder: 'Boulder',
+    mode_lead: 'Lead',
+    mode_clock: 'Kello',
+    mode_circuit: 'Intervallit',
+    label_autoloop: 'Jatkuva kierto (Auto-Loop)',
+    label_climb_duration: 'Kiipeilyaika (sekuntia)',
+    label_trans_duration: 'Lepo- / siirtymäaika (sekuntia)',
+    label_prep_duration: 'Valmistautumisaika (sekuntia)',
+    cfg_circuit_steps: '📋 Intervallivaiheet',
+    th_step: '#',
+    th_climb_time: 'Kiipeilyaika (s)',
+    th_rest_time: 'Lepoaika (s)',
+    th_action: 'Toiminto',
+    btn_add_step: '➕ Lisää vaihe',
+    btn_reset_defaults: '🔄 Palauta oletukset',
+    label_raw_seq: 'Sarjakoodi:',
+    cfg_audio_display: 'Äänet ja näyttö',
+    label_countdown_beeps: 'Varoituspiippaukset',
+    label_audio_waveform: 'Äänen aaltomuoto',
+    wave_sine: 'Pehmeä sini (Warm Sine)',
+    wave_square: 'Terävä kantti (Sharp Square)',
+    label_audio_volume: 'Äänenvoimakkuus',
+    cfg_ui_lanes: 'Käyttöliittymä ja radat',
+    label_use_symbols: 'Käytä symboleita',
+    label_idle_visuals: 'Ota lepotilan visuaalit käyttöön',
+    cfg_idle_appearance: 'Lepotilan ulkoasu',
+    label_idle_text_color: 'Ajastimen tekstin väri',
+    label_idle_bar_color: 'Vaihepalkin väri',
+    label_idle_led_color: 'LEDien väri',
+    label_idle_led_effect: 'LED-efekti',
+    effect_off: 'Pois',
+    effect_solid: 'Tasainen',
+    effect_flash: 'Vilkkuva',
+    effect_pulse: 'Sykkivä',
+    effect_rainbow: 'Sateenkaari',
+    effect_wave: 'Aalto',
+    label_show_tenths: 'Näytä kymmenykset',
+    label_console_output: 'Konsoliulostulo',
+    label_maint_mode: 'Huoltotila',
+    label_ui_theme: 'Väriteema',
+    theme_dark: 'Tumma (Pro Dark)',
+    theme_ifsc: 'IFSC-viralliset värit',
+    label_active_lanes: 'Aktiiviset radat',
+    lane_a: 'Rata A',
+    lane_b: 'Rata B',
+    label_unit_assigned_lane: 'Ohjaimen rata',
+    lane_global: 'Molemmat (Global)',
+    lane_left: 'Rata A (Vasen)',
+    lane_right: 'Rata B (Oikea)',
+    cfg_system_timezone: 'Järjestelmä ja aikavyöhyke',
+    label_radio_mode: 'Yhteystila',
+    radio_wifi: 'Wi-Fi-tila',
+    radio_ble: 'Bluetooth-tila (BLE)',
+    label_tz_presets: 'Aikavyöhykkeet',
+    tz_custom: 'Oma POSIX-merkkijono...',
+    label_posix_tz: 'POSIX-aikavyöhyke',
+    btn_set_tz: 'Aseta aikavyöhyke',
+    label_device_rtc: 'Laitteen reaaliaikakello (RTC)',
+    btn_sync_time: '🕒 Synkronoi aika selaimesta',
+    step_prefix: 'Vaihe',
+    btn_remove: '🗑️ Poista',
+    manual_title: 'Käyttöohje',
+    loop_on: 'KIERTO PÄÄLLÄ',
+    loop_off: 'POIS',
+  },
 };
 
 export class ClimbTimerApp {
@@ -209,24 +293,24 @@ export class ClimbTimerApp {
     this.locale = this.detectLocale();
 
     this.config = {
-      M: 0,   // Mode
-      C: 60,  // Climb Time
-      T: 15,  // Transition Time
-      N: 15,  // Initial Warning / Prep Time
+      M: 0, // Mode
+      C: 60, // Climb Time
+      T: 15, // Transition Time
+      N: 15, // Initial Warning / Prep Time
       V: 100, // Volume
-      Q: 0,   // Run Mode
-      X: 0,   // Tenths
-      Y: 0,   // Symbols
-      Z: 0,   // Idle visuals
-      B: 1,   // Countdown Beeps (0: Off, 1: On)
-      W: 0,   // Waveform
-      K: 0,   // Maint Mode
-      A: 0,   // Assigned Lane
-      H: 1,   // Lane A Enable
-      J: 1,   // Lane B Enable
-      D: 1,   // Radio Mode
-      tz: "EET-2EEST,M3.5.0/3,M10.5.0/4",
-      circ_seq: "30/15,30/15",
+      Q: 0, // Run Mode
+      X: 0, // Tenths
+      Y: 0, // Symbols
+      Z: 0, // Idle visuals
+      B: 1, // Countdown Beeps (0: Off, 1: On)
+      W: 0, // Waveform
+      K: 0, // Maint Mode
+      A: 0, // Assigned Lane
+      H: 1, // Lane A Enable
+      J: 1, // Lane B Enable
+      D: 1, // Radio Mode
+      tz: 'EET-2EEST,M3.5.0/3,M10.5.0/4',
+      circ_seq: '30/15,30/15',
       theme: 0,
       console: false,
     };
@@ -240,6 +324,9 @@ export class ClimbTimerApp {
     this.lastTick = 0;
     this.lineBuffer = '';
     this.timerTotal = 0;
+    this.connectionState = 'disconnected';
+    this.pendingAction = null;
+    this.actionNoticeTimer = null;
 
     this.initializeUI();
   }
@@ -270,8 +357,9 @@ export class ClimbTimerApp {
   }
 
   applyLocale() {
+    document.documentElement.lang = this.locale;
     // 1. Update text nodes with data-i18n
-    document.querySelectorAll('[data-i18n]').forEach(el => {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
       const val = this.t(key);
       if (val) {
@@ -284,7 +372,7 @@ export class ClimbTimerApp {
     });
 
     // 2. Update language switcher buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.getAttribute('data-lang') === this.locale);
     });
 
@@ -295,17 +383,29 @@ export class ClimbTimerApp {
       manualLink.title = this.t('manual_title');
       manualLink.setAttribute('aria-label', this.t('manual_title'));
     }
+    document.getElementById('closeConfig')?.setAttribute('aria-label', this.t('close_settings'));
+    document
+      .getElementById('closeTerminal')
+      ?.setAttribute('aria-label', this.t('close_diagnostics'));
 
     // 4. Update status and mode text
     const statusTextEl = document.getElementById('statusText');
     if (statusTextEl) {
-      const isConn = this.transport && this.transport.isConnected();
-      statusTextEl.textContent = isConn ? this.t('connected') : this.t('disconnected');
+      statusTextEl.textContent =
+        this.connectionState === 'connected'
+          ? this.t('connected')
+          : this.connectionState === 'connecting'
+            ? this.t('connecting')
+            : this.t('disconnected');
     }
 
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('data-lang') === this.locale));
+    });
     this.updateModeDisplay();
     this.updateRunModeDisplay();
     this.updateSymbolUI();
+    this.updatePhaseDisplay();
     this.renderCircuitStepsTable();
   }
 
@@ -323,11 +423,12 @@ export class ClimbTimerApp {
     }
 
     // If we're not on a standard "web" domain, might be on-device
-    const isStandardWeb = hostname === 'localhost' ||
-                          hostname === '127.0.0.1' ||
-                          hostname === '' ||
-                          hostname.endsWith('.pages.dev') ||
-                          hostname.endsWith('.github.io');
+    const isStandardWeb =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '' ||
+      hostname.endsWith('.pages.dev') ||
+      hostname.endsWith('.github.io');
 
     return isStandardWeb ? 'ble' : 'http';
   }
@@ -348,7 +449,7 @@ export class ClimbTimerApp {
       this.terminal = new Terminal(terminalEl);
     }
 
-    document.querySelectorAll('.lang-btn').forEach(btn => {
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const lang = e.target.getAttribute('data-lang');
         this.setLocale(lang);
@@ -356,18 +457,28 @@ export class ClimbTimerApp {
     });
 
     document.getElementById('connectBleBtn')?.addEventListener('click', () => this.connect('ble'));
-    document.getElementById('connectHttpBtn')?.addEventListener('click', () => this.connect('http'));
+    document
+      .getElementById('connectHttpBtn')
+      ?.addEventListener('click', () => this.connect('http'));
     document.getElementById('disconnectBtn')?.addEventListener('click', () => this.disconnect());
 
-    document.getElementById('btn-start')?.addEventListener('click', () => this.sendEvent(6));
-    document.getElementById('btn-reset')?.addEventListener('click', () => this.sendEvent(9));
-    document.getElementById('btn-abort')?.addEventListener('click', () => this.sendEvent(8));
-    document.getElementById('btn-finish')?.addEventListener('click', () => this.sendEvent(7));
+    document.getElementById('btn-start')?.addEventListener('click', () => this.requestEvent(6));
+    document
+      .getElementById('btn-reset')
+      ?.addEventListener('click', () => this.requestEvent(9, '', 'reset_confirm'));
+    document
+      .getElementById('btn-abort')
+      ?.addEventListener('click', () => this.requestEvent(8, '', 'abort_confirm'));
+    document.getElementById('btn-finish')?.addEventListener('click', () => this.requestEvent(7));
 
-    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.sendEvent(29));
-    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.sendEvent(30));
-    document.getElementById('btn-fall-a')?.addEventListener('click', () => this.sendEvent(25, 'L1 S10'));
-    document.getElementById('btn-fall-b')?.addEventListener('click', () => this.sendEvent(25, 'L2 S10'));
+    document.getElementById('btn-winner-a')?.addEventListener('click', () => this.requestEvent(29));
+    document.getElementById('btn-winner-b')?.addEventListener('click', () => this.requestEvent(30));
+    document
+      .getElementById('btn-fall-a')
+      ?.addEventListener('click', () => this.requestEvent(25, 'L1 S10'));
+    document
+      .getElementById('btn-fall-b')
+      ?.addEventListener('click', () => this.requestEvent(25, 'L2 S10'));
 
     document.getElementById('toggleConfig')?.addEventListener('click', () => this.toggleConfig());
     document.getElementById('closeConfig')?.addEventListener('click', () => this.closeConfig());
@@ -384,9 +495,8 @@ export class ClimbTimerApp {
       const input = e.target.closest('[data-idle-field]');
       if (!input || !this.idlePalette) return;
       const field = input.dataset.idleField;
-      this.idlePalette[field] = field === 'effect'
-        ? parseInt(input.value, 10)
-        : this.hexToRgb565(input.value);
+      this.idlePalette[field] =
+        field === 'effect' ? parseInt(input.value, 10) : this.hexToRgb565(input.value);
       this.saveIdlePalette();
     });
 
@@ -403,18 +513,19 @@ export class ClimbTimerApp {
       'cfg-countdown': 'B',
       'cfg-lane-a': 'H',
       'cfg-lane-b': 'J',
-      'cfg-waveform': 'W'
+      'cfg-waveform': 'W',
     };
 
-    Object.keys(immediateConfigs).forEach(id => {
+    Object.keys(immediateConfigs).forEach((id) => {
       document.getElementById(id)?.addEventListener('change', (e) => {
         const key = immediateConfigs[id];
-        const val = e.target.type === 'checkbox' ? (e.target.checked ? 1 : 0) : parseInt(e.target.value, 10);
+        const val =
+          e.target.type === 'checkbox' ? (e.target.checked ? 1 : 0) : parseInt(e.target.value, 10);
         this.config[key] = val;
         this.sendConfig(key, val);
         if (id === 'cfg-vol') {
-           const volDisp = document.getElementById('volDisplay');
-           if (volDisp) volDisp.textContent = val;
+          const volDisp = document.getElementById('volDisplay');
+          if (volDisp) volDisp.textContent = val;
         }
         this.updateTimerPreview();
         this.renderFlowVisualizer();
@@ -431,7 +542,9 @@ export class ClimbTimerApp {
     });
 
     document.getElementById('btnAddStep')?.addEventListener('click', () => this.addCircuitStep());
-    document.getElementById('btnResetSteps')?.addEventListener('click', () => this.resetCircuitSteps());
+    document
+      .getElementById('btnResetSteps')
+      ?.addEventListener('click', () => this.resetCircuitSteps());
 
     document.getElementById('cfg-mode')?.addEventListener('change', (e) => {
       const mode = parseInt(e.target.value);
@@ -473,13 +586,31 @@ export class ClimbTimerApp {
       document.getElementById('terminalPanel')?.classList.toggle('hidden', !this.config.console);
     });
 
-    document.getElementById('toggleTerminal')?.addEventListener('click', () => this.toggleTerminal());
+    document
+      .getElementById('toggleTerminal')
+      ?.addEventListener('click', () => this.toggleTerminal());
     document.getElementById('closeTerminal')?.addEventListener('click', () => this.closeTerminal());
-    document.getElementById('terminalClear')?.addEventListener('click', () => this.terminal?.clear());
-    document.getElementById('terminalSave')?.addEventListener('click', () => this.terminal?.saveLogs());
-    document.getElementById('terminalSend')?.addEventListener('click', () => this.sendTerminalCommand());
+    document
+      .getElementById('terminalClear')
+      ?.addEventListener('click', () => this.terminal?.clear());
+    document
+      .getElementById('terminalSave')
+      ?.addEventListener('click', () => this.terminal?.saveLogs());
+    document
+      .getElementById('terminalSend')
+      ?.addEventListener('click', () => this.sendTerminalCommand());
     document.getElementById('terminalInput')?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') this.sendTerminalCommand();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!e.altKey || e.target.matches('input, select, textarea')) return;
+      if (e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('btn-start')?.click();
+      } else if (e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        document.getElementById('btn-reset')?.click();
+      }
     });
 
     this.syncFormWithConfig();
@@ -515,6 +646,7 @@ export class ClimbTimerApp {
     if (!this.transport) return;
 
     try {
+      this.setConnectionState('connecting');
       try {
         await this.transport.connect();
       } catch (e) {
@@ -532,14 +664,11 @@ export class ClimbTimerApp {
       this.transport.onReceive((data) => this.handleData(data));
       this.transport.onDisconnected(() => this.handleDisconnection());
 
-      const indicator = document.getElementById('statusIndicator');
-      if (indicator) indicator.className = 'status-dot connected';
-      document.getElementById('statusText').textContent = 'Connected';
-      document.getElementById('connectButtons').style.display = 'none';
       document.getElementById('deviceInfo').classList.remove('hidden');
       document.getElementById('deviceName').textContent = this.transport.getDeviceName();
+      this.setConnectionState('connected');
+      document.getElementById('connectButtons').style.display = 'none';
 
-      this.setControlsEnabled(true);
       document.getElementById('terminalInput').disabled = false;
       document.getElementById('terminalSend').disabled = false;
 
@@ -550,29 +679,67 @@ export class ClimbTimerApp {
       this.sendTerminalCommand('RDO');
     } catch (error) {
       this.terminal?.print('Connection failed: ' + error.message, 'error');
+      this.setConnectionState('disconnected', this.t('connection_retry'));
+      this.transport = null;
     }
   }
 
   async disconnect() {
-    await this.transport.disconnect();
+    if (this.transport) await this.transport.disconnect();
   }
 
   handleDisconnection() {
     this.terminal?.print('Disconnected', 'info');
-    const indicator = document.getElementById('statusIndicator');
-    if (indicator) indicator.className = 'status-dot disconnected';
-    document.getElementById('statusText').textContent = 'Disconnected';
+    this.setConnectionState('disconnected');
     document.getElementById('connectButtons').style.display = 'flex';
     document.getElementById('deviceInfo').classList.add('hidden');
     this.setControlsEnabled(false);
     this.transport = null;
+    document.getElementById('terminalInput').disabled = true;
+    document.getElementById('terminalSend').disabled = true;
+  }
+
+  setConnectionState(state, message = '') {
+    this.connectionState = state;
+    const indicator = document.getElementById('statusIndicator');
+    if (indicator) indicator.className = `status-dot ${state}`;
+    const statusText = document.getElementById('statusText');
+    if (statusText) {
+      statusText.textContent =
+        state === 'connected'
+          ? this.t('connected')
+          : state === 'connecting'
+            ? this.t('connecting')
+            : this.t('disconnected');
+    }
+    const hint = document.getElementById('connectionHint');
+    if (hint) {
+      hint.textContent =
+        state === 'connected'
+          ? document.getElementById('deviceName')?.textContent || this.t('connected')
+          : state === 'connecting'
+            ? this.t('connecting')
+            : this.t('connection_hint');
+    }
+    const alert = document.getElementById('connectionAlert');
+    const alertText = document.getElementById('connectionAlertText');
+    if (alert && alertText) {
+      alert.classList.toggle('hidden', !message);
+      alertText.textContent = message;
+    }
+    const connectionButtons = document.querySelectorAll('#connectBleBtn, #connectHttpBtn');
+    connectionButtons.forEach((button) => {
+      button.disabled = state === 'connecting';
+    });
+    this.updateControlAvailability();
+    this.updatePhaseDisplay();
   }
 
   handleData(data) {
     const chunk = this.lineBuffer + data;
     const lines = chunk.split(/\r?\n/);
     this.lineBuffer = lines.pop() || '';
-    lines.forEach(line => this.handleLine(line.trim()));
+    lines.forEach((line) => this.handleLine(line.trim()));
   }
 
   handleLine(line) {
@@ -638,8 +805,12 @@ export class ClimbTimerApp {
             }
             this.circuitSteps[idx] = { climb, rest };
           }
-            if (this.circuitSteps.length === this.circuitStepsCount &&
-              this.circuitSteps.every((step, index) => index in this.circuitSteps && step !== undefined)) {
+          if (
+            this.circuitSteps.length === this.circuitStepsCount &&
+            this.circuitSteps.every(
+              (step, index) => index in this.circuitSteps && step !== undefined
+            )
+          ) {
             this.config.circ_seq = this.buildCircSeqStr(this.circuitSteps);
             this.renderCircuitStepsTable();
             this.renderFlowVisualizer();
@@ -663,18 +834,26 @@ export class ClimbTimerApp {
         if (customInput) customInput.value = tzVal;
         const presetSelect = document.getElementById('cfg-tz-preset');
         if (presetSelect) {
-          const matchOpt = Array.from(presetSelect.options).find(o => o.value === tzVal);
+          const matchOpt = Array.from(presetSelect.options).find((o) => o.value === tzVal);
           presetSelect.value = matchOpt ? tzVal : 'custom';
         }
       }
       return;
     }
 
-    if (line.startsWith('RDO ') || line.startsWith('OK RDO ') || line.startsWith('RADIO ') || line.startsWith('OK RADIO ')) {
-      const radioVal = line.replace(/^(OK\s+)?(RDO|RADIO)\s*/, '').replace(/—.*/, '').trim();
+    if (
+      line.startsWith('RDO ') ||
+      line.startsWith('OK RDO ') ||
+      line.startsWith('RADIO ') ||
+      line.startsWith('OK RADIO ')
+    ) {
+      const radioVal = line
+        .replace(/^(OK\s+)?(RDO|RADIO)\s*/, '')
+        .replace(/—.*/, '')
+        .trim();
       const radioSelect = document.getElementById('cfg-radio-mode');
       if (radioSelect) {
-        radioSelect.value = (radioVal === '1' || radioVal === 'BLE') ? 'BLE' : 'WIFI';
+        radioSelect.value = radioVal === '1' || radioVal === 'BLE' ? 'BLE' : 'WIFI';
       }
       return;
     }
@@ -683,10 +862,18 @@ export class ClimbTimerApp {
     const body = line.substring(1).trim();
 
     switch (cmd) {
-      case 'E': this.parseEvent(body); break;
-      case 'C': this.parseConfig(body, 'C'); break;
-      case 'G': this.parseConfig(body, 'G'); break;
-      case 'S': this.parseStatus(body); break;
+      case 'E':
+        this.parseEvent(body);
+        break;
+      case 'C':
+        this.parseConfig(body, 'C');
+        break;
+      case 'G':
+        this.parseConfig(body, 'G');
+        break;
+      case 'S':
+        this.parseStatus(body);
+        break;
       case 'R':
       case '!':
         if (body === 'OK') this.terminal?.print('✓ ' + cmd + ' Success', 'success');
@@ -730,11 +917,12 @@ export class ClimbTimerApp {
           if (state === 4) this.pausedInTransition = false;
           this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
-        } else if (args.M !== undefined) { // Legacy fallback
+        } else if (args.M !== undefined) {
+          // Legacy fallback
           const val = args.M; // Already parsed as decimal now, but legacy was hex.
           // If it was hex, this might fail, but user wants decimal anyway.
-          const state = val & 0xFF;
-          const elapsed = (val >> 8) & 0xFFFFFF;
+          const state = val & 0xff;
+          const elapsed = (val >> 8) & 0xffffff;
           this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
         }
@@ -747,11 +935,12 @@ export class ClimbTimerApp {
           if (state === 9) this.pausedInTransition = !!(res & 0x08);
           this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
-        } else if (args.M !== undefined) { // Legacy fallback
+        } else if (args.M !== undefined) {
+          // Legacy fallback
           const val = args.M;
-          const state = val & 0xFF;
-          const res = (val >> 8) & 0x0F;
-          const elapsed = (val >> 12) & 0xFFFFF;
+          const state = val & 0xff;
+          const res = (val >> 8) & 0x0f;
+          const elapsed = (val >> 12) & 0xfffff;
           if (state === 9) this.pausedInTransition = !!(res & 0x08);
           this.displayElapsedMs = elapsed;
           this.handleStateChange(0, state);
@@ -791,7 +980,7 @@ export class ClimbTimerApp {
       13: 'A', // CFG_TYPE_LANE_ASSIGN
       18: 'N', // CFG_TYPE_INIT_TRANS_MS
       19: 'M', // CFG_TYPE_CLIMB_MODE
-      22: 'Z'  // CFG_TYPE_IDLE_VISUALS
+      22: 'Z', // CFG_TYPE_IDLE_VISUALS
     };
 
     const key = mapping[type];
@@ -820,27 +1009,27 @@ export class ClimbTimerApp {
 
   parseConfig(data, context) {
     const args = this.parseArgs(data.split(/\s+/), context);
-    Object.keys(args).forEach(key => {
-        if (this.config.hasOwnProperty(key)) {
-            // For config, only M and A should potentially be hex if they ever appear there.
-            // But based on doc, M (Mode) in config is ID (Decimal).
-            // Let's stick to what parseArgs returns now.
-            this.config[key] = args[key];
-        }
+    Object.keys(args).forEach((key) => {
+      if (Object.hasOwn(this.config, key)) {
+        // For config, only M and A should potentially be hex if they ever appear there.
+        // But based on doc, M (Mode) in config is ID (Decimal).
+        // Let's stick to what parseArgs returns now.
+        this.config[key] = args[key];
+      }
     });
 
     if (args.U !== undefined) {
-        this.config.theme = args.U;
-        this.config.U = args.U;
-        this.applyTheme();
+      this.config.theme = args.U;
+      this.config.U = args.U;
+      this.applyTheme();
     }
     if (args.M !== undefined) {
-        this.currentMode = this.config.M;
-        this.updateModeDisplay();
+      this.currentMode = this.config.M;
+      this.updateModeDisplay();
     }
     if (args.Q !== undefined) {
-        this.currentRunMode = this.config.Q;
-        this.updateRunModeDisplay();
+      this.currentRunMode = this.config.Q;
+      this.updateRunModeDisplay();
     }
 
     this.syncFormWithConfig();
@@ -853,34 +1042,44 @@ export class ClimbTimerApp {
   parseStatus(data) {
     const args = this.parseArgs(data.split(/\s+/), 'S');
     if (args.M !== undefined) {
-        this.config.M = args.M;
-        this.currentMode = this.config.M;
+      this.config.M = args.M;
+      this.currentMode = this.config.M;
     }
     if (args.Q !== undefined) {
-        this.config.Q = args.Q;
-        this.currentRunMode = this.config.Q;
+      this.config.Q = args.Q;
+      this.currentRunMode = this.config.Q;
     }
     this.updateModeDisplay();
     this.updateRunModeDisplay();
     this.syncFormWithConfig();
   }
 
-  parseArgs(parts, context) {
+  parseArgs(parts) {
     const args = {};
-    parts.forEach(p => {
-        if (!p) return;
-        const key = p[0].toUpperCase();
-        const valStr = p.substring(1);
+    parts.forEach((p) => {
+      if (!p) return;
+      const key = p[0].toUpperCase();
+      const valStr = p.substring(1);
 
-        // All values are now Decimal in the unified protocol
-        args[key] = parseInt(valStr, 10);
+      // All values are now Decimal in the unified protocol
+      args[key] = parseInt(valStr, 10);
     });
     return args;
   }
 
   static STATE_NAMES = [
-    'IDLE', 'PRECONDITION', 'STARTER_WAIT', 'BEEPING', 'TRANSITION',
-    'READY', 'RACING', 'FINISHED', 'FALSE_START', 'PAUSED', 'FALL', 'SPLASH'
+    'IDLE',
+    'PRECONDITION',
+    'STARTER_WAIT',
+    'BEEPING',
+    'TRANSITION',
+    'READY',
+    'RACING',
+    'FINISHED',
+    'FALSE_START',
+    'PAUSED',
+    'FALL',
+    'SPLASH',
   ];
 
   handleStateChange(lane, stateIdx) {
@@ -905,6 +1104,8 @@ export class ClimbTimerApp {
     this.systemState = stateIdx;
     this.updateTimerPreview();
     this.updateTimerTextFromMs();
+    this.updatePhaseDisplay();
+    this.updateControlAvailability();
   }
 
   updateTimerTotal(stateIdx) {
@@ -926,6 +1127,7 @@ export class ClimbTimerApp {
 
     this.lastTick = Date.now();
     this.updateTimerTextFromMs();
+    this.updatePhaseDisplay();
     this.displayInterval = setInterval(() => {
       const now = Date.now();
       const delta = now - this.lastTick;
@@ -938,12 +1140,14 @@ export class ClimbTimerApp {
   pauseDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'paused';
+    this.updatePhaseDisplay();
   }
 
   finishDisplayTimer() {
     this.clearDisplayInterval();
     this.displayState = 'finished';
     this.updateTimerTextFromMs();
+    this.updatePhaseDisplay();
   }
 
   resetDisplayTimer() {
@@ -951,6 +1155,7 @@ export class ClimbTimerApp {
     this.displayState = 'idle';
     this.displayElapsedMs = 0;
     this.updateTimerTextFromMs();
+    this.updatePhaseDisplay();
   }
 
   clearDisplayInterval() {
@@ -964,10 +1169,12 @@ export class ClimbTimerApp {
 
     // 1. Handle IDLE state display
     if (this.displayState === 'idle') {
-      if (this.currentMode === 0) { // SPEED
+      if (this.currentMode === 0) {
+        // SPEED
         el.textContent = '00.000';
-        el.style.color = '#ff4444';
-      } else if (this.currentMode === 3) { // CLOCK
+        el.style.color = this.connectionState === 'connected' ? 'var(--accent)' : '#94a3b8';
+      } else if (this.currentMode === 3) {
+        // CLOCK
         const now = new Date();
         el.textContent = now.toTimeString().split(' ')[0];
         el.style.color = '';
@@ -979,17 +1186,20 @@ export class ClimbTimerApp {
     }
 
     // 2. Handle special competition states
-    if (this.systemState === 8 && this.currentMode !== 0) { // FALSE_START
+    if (this.systemState === 8 && this.currentMode !== 0) {
+      // FALSE_START
       el.textContent = 'FALSE';
       el.style.color = '#ff4444';
       return;
     }
-    if (this.systemState === 7 && this.currentMode !== 0) { // FINISHED
+    if (this.systemState === 7 && this.currentMode !== 0) {
+      // FINISHED
       el.textContent = 'DONE';
       el.style.color = '#38bdf8';
       return;
     }
-    if (this.systemState === 3 && this.currentMode === 0) { // BEEPING (Speed SET)
+    if (this.systemState === 3 && this.currentMode === 0) {
+      // BEEPING (Speed SET)
       el.textContent = 'SET';
       el.style.color = '#ff4444';
       return;
@@ -1000,11 +1210,14 @@ export class ClimbTimerApp {
     let color = '';
     const mode = parseInt(this.config.M, 10);
 
-    if (mode === 1 || mode === 2) { // Boulder/Lead countdown
+    if (mode === 1 || mode === 2) {
+      // Boulder/Lead countdown
       ms = Math.max(0, this.timerTotal - this.displayElapsedMs);
-      if (this.systemState === 4 || (this.systemState === 9 && this.pausedInTransition)) { // TRANSITION or PAUSED-IN-TRANS
+      if (this.systemState === 4 || (this.systemState === 9 && this.pausedInTransition)) {
+        // TRANSITION or PAUSED-IN-TRANS
         color = '#fbbf24'; // Orange/Amber
-      } else if (ms <= 5000 && (this.systemState === 6 || this.systemState === 9)) { // Final 5s of Racing or PAUSED-IN-RACING
+      } else if (ms <= 5000 && (this.systemState === 6 || this.systemState === 9)) {
+        // Final 5s of Racing or PAUSED-IN-RACING
         color = '#ff4444';
       }
     }
@@ -1013,7 +1226,8 @@ export class ClimbTimerApp {
     const min = Math.floor(totalSec / 60);
     const sec = totalSec % 60;
 
-    if (mode === 0) { // SPEED
+    if (mode === 0) {
+      // SPEED
       if (this.displayState === 'finished') {
         const fraction = ms % 1000;
         el.textContent = `${String(totalSec).padStart(2, '0')}.${String(fraction).padStart(3, '0')}`;
@@ -1062,10 +1276,10 @@ export class ClimbTimerApp {
   }
 
   rgb565ToHex(value) {
-    const red = Math.round(((value >> 11) & 0x1f) * 255 / 31);
-    const green = Math.round(((value >> 5) & 0x3f) * 255 / 63);
-    const blue = Math.round((value & 0x1f) * 255 / 31);
-    return `#${[red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+    const red = Math.round((((value >> 11) & 0x1f) * 255) / 31);
+    const green = Math.round((((value >> 5) & 0x3f) * 255) / 63);
+    const blue = Math.round(((value & 0x1f) * 255) / 31);
+    return `#${[red, green, blue].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
   }
 
   hexToRgb565(value) {
@@ -1078,28 +1292,28 @@ export class ClimbTimerApp {
 
   syncFormWithConfig() {
     const mapping = {
-        'cfg-climb': 'C',
-        'cfg-trans': 'T',
-        'cfg-init-trans': 'N',
-        'cfg-mode': 'M',
-        'cfg-vol': 'V',
-        'cfg-symbols': 'Y',
-        'cfg-idle-visuals': 'Z',
-        'cfg-tenths': 'X',
-        'cfg-maintenance': 'K',
-        'cfg-assigned-lane': 'A',
-        'cfg-countdown': 'B',
-        'cfg-lane-a': 'H',
-        'cfg-lane-b': 'J',
-        'cfg-waveform': 'W'
+      'cfg-climb': 'C',
+      'cfg-trans': 'T',
+      'cfg-init-trans': 'N',
+      'cfg-mode': 'M',
+      'cfg-vol': 'V',
+      'cfg-symbols': 'Y',
+      'cfg-idle-visuals': 'Z',
+      'cfg-tenths': 'X',
+      'cfg-maintenance': 'K',
+      'cfg-assigned-lane': 'A',
+      'cfg-countdown': 'B',
+      'cfg-lane-a': 'H',
+      'cfg-lane-b': 'J',
+      'cfg-waveform': 'W',
     };
 
-    Object.keys(mapping).forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const val = this.config[mapping[id]];
-        if (el.type === 'checkbox') el.checked = !!val;
-        else el.value = val;
+    Object.keys(mapping).forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const val = this.config[mapping[id]];
+      if (el.type === 'checkbox') el.checked = !!val;
+      else el.value = val;
     });
 
     const autoloopEl = document.getElementById('cfg-autoloop');
@@ -1112,6 +1326,47 @@ export class ClimbTimerApp {
     this.renderFlowVisualizer();
   }
 
+  requestEvent(code, args = '', confirmationKey = '') {
+    const actionId = `${code}:${args}`;
+    if (confirmationKey && this.pendingAction !== actionId) {
+      this.pendingAction = actionId;
+      this.showActionNotice(this.t(confirmationKey), true);
+      clearTimeout(this.actionNoticeTimer);
+      this.actionNoticeTimer = setTimeout(() => {
+        if (this.pendingAction === actionId) {
+          this.pendingAction = null;
+          this.showActionNotice(this.t('action_cancelled'));
+        }
+      }, 5000);
+      return;
+    }
+
+    clearTimeout(this.actionNoticeTimer);
+    this.pendingAction = null;
+    this.hideActionNotice();
+    this.sendEvent(code, args);
+  }
+
+  showActionNotice(message, armed = false) {
+    const notice = document.getElementById('actionNotice');
+    if (!notice) return;
+    notice.textContent = message;
+    notice.classList.remove('hidden');
+    notice.classList.toggle('armed', armed);
+    if (!armed) {
+      clearTimeout(this.actionNoticeTimer);
+      this.actionNoticeTimer = setTimeout(() => this.hideActionNotice(), 2500);
+    }
+  }
+
+  hideActionNotice() {
+    const notice = document.getElementById('actionNotice');
+    if (notice) {
+      notice.textContent = '';
+      notice.classList.add('hidden');
+      notice.classList.remove('armed');
+    }
+  }
 
   async sendEvent(code, args = '') {
     const cmd = `E${code} ${args}`.trim();
@@ -1129,6 +1384,7 @@ export class ClimbTimerApp {
     if (!this.transport || !this.transport.isConnected()) {
       if (!cmd) {
         this.terminal?.print('Not connected', 'error');
+        this.showActionNotice(this.t('connection_hint'));
       }
       return;
     }
@@ -1142,6 +1398,7 @@ export class ClimbTimerApp {
       }
     } catch (error) {
       this.terminal?.print('Error: ' + error.message, 'error');
+      this.showActionNotice(this.t('connection_retry'));
     }
   }
 
@@ -1162,6 +1419,8 @@ export class ClimbTimerApp {
     this.updateModeDisplay();
     this.updateRunModeDisplay();
     this.renderFlowVisualizer();
+    this.updatePhaseDisplay();
+    this.updateControlAvailability();
   }
 
   updateModeDisplay() {
@@ -1174,15 +1433,23 @@ export class ClimbTimerApp {
     const modeClass = ['speed', 'boulder', 'lead', 'clock', 'circuit'][this.currentMode] || 'speed';
     document.body.className = `mode-${modeClass}`;
 
-    document.querySelectorAll('.mode-speed-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 0));
-    document.querySelectorAll('.mode-boulder-only').forEach(el => el.classList.toggle('hidden', this.currentMode !== 1));
+    document
+      .querySelectorAll('.mode-speed-only')
+      .forEach((el) => el.classList.toggle('hidden', this.currentMode !== 0));
+    document
+      .querySelectorAll('.mode-boulder-only')
+      .forEach((el) => el.classList.toggle('hidden', this.currentMode !== 1));
 
     this.updateSymbolUI();
+    this.updateTimerTextFromMs();
+    this.updatePhaseDisplay();
+    this.updateControlAvailability();
   }
 
   updateRunModeDisplay() {
     const runModeDisp = document.getElementById('runModeDisplay');
-    if (runModeDisp) runModeDisp.textContent = this.config.Q ? this.t('loop_on') : this.t('loop_off');
+    if (runModeDisp)
+      runModeDisp.textContent = this.config.Q ? this.t('loop_on') : this.t('loop_off');
   }
 
   updateSymbolUI() {
@@ -1222,8 +1489,24 @@ export class ClimbTimerApp {
   }
 
   getDisplayStateLabel() {
-    if (this.displayState === 'idle') return 'IDLE';
-    return ClimbTimerApp.STATE_NAMES[this.systemState] || '---';
+    if (this.displayState === 'idle') return this.t('phase_idle');
+    const stateKeys = [
+      'phase_idle',
+      'phase_precondition',
+      'phase_starter_wait',
+      'phase_beeping',
+      'phase_transition',
+      'phase_ready',
+      'phase_racing',
+      'phase_finished',
+      'phase_false_start',
+      'phase_paused',
+      'phase_fall',
+      'phase_splash',
+    ];
+    return (
+      this.t(stateKeys[this.systemState]) || ClimbTimerApp.STATE_NAMES[this.systemState] || '---'
+    );
   }
 
   applyTheme() {
@@ -1241,16 +1524,115 @@ export class ClimbTimerApp {
     }
   }
 
-  toggleConfig() { document.getElementById('configPanel')?.classList.toggle('hidden'); }
-  closeConfig() { document.getElementById('configPanel')?.classList.add('hidden'); }
-  toggleTerminal() { document.getElementById('terminalPanel')?.classList.toggle('hidden'); }
-  closeTerminal() { document.getElementById('terminalPanel')?.classList.add('hidden'); }
+  updatePhaseDisplay() {
+    const phaseLabel = document.getElementById('phaseLabel');
+    const phaseKind = document.getElementById('phaseEyebrow');
+    const direction = document.getElementById('phaseDirection');
+    const guidance = document.getElementById('phaseGuidance');
+    if (!phaseLabel || !direction || !guidance) return;
+
+    const connected = this.connectionState === 'connected';
+    const stateKeys = [
+      'phase_idle',
+      'phase_precondition',
+      'phase_starter_wait',
+      'phase_beeping',
+      'phase_transition',
+      'phase_ready',
+      'phase_racing',
+      'phase_finished',
+      'phase_false_start',
+      'phase_paused',
+      'phase_fall',
+      'phase_splash',
+    ];
+    const guidanceKeys = [
+      connected ? 'phase_connected_guidance' : 'phase_idle_guidance',
+      'phase_precondition_guidance',
+      'phase_starter_wait_guidance',
+      'phase_beeping_guidance',
+      'phase_transition_guidance',
+      'phase_ready_guidance',
+      'phase_racing_guidance',
+      'phase_finished_guidance',
+      'phase_false_start_guidance',
+      'phase_paused_guidance',
+      'phase_fall_guidance',
+      'phase_splash_guidance',
+    ];
+    const stateIndex = this.displayState === 'idle' ? 0 : this.systemState;
+    phaseLabel.textContent = this.t(stateKeys[stateIndex]);
+    if (phaseKind)
+      phaseKind.textContent =
+        stateIndex === 0 ? this.t('phase_ready_label') : this.t('phase_current_label');
+    guidance.textContent = this.t(guidanceKeys[stateIndex]);
+
+    let directionKey = 'timer_stopped';
+    if ([1, 2, 3, 4, 5, 6, 9].includes(stateIndex) && this.displayState === 'running') {
+      directionKey =
+        [1, 2].includes(this.currentMode) || stateIndex === 4 ? 'timer_countdown' : 'timer_elapsed';
+    }
+    direction.textContent = this.t(directionKey);
+    document.querySelector('.timer-display')?.setAttribute('data-phase', String(stateIndex));
+  }
+
+  toggleConfig() {
+    const panel = document.getElementById('configPanel');
+    const isOpen = panel && !panel.classList.toggle('hidden');
+    document.getElementById('toggleConfig')?.setAttribute('aria-expanded', String(isOpen));
+  }
+  closeConfig() {
+    document.getElementById('configPanel')?.classList.add('hidden');
+    document.getElementById('toggleConfig')?.setAttribute('aria-expanded', 'false');
+    document.getElementById('toggleConfig')?.focus();
+  }
+  toggleTerminal() {
+    const panel = document.getElementById('terminalPanel');
+    const isOpen = panel && !panel.classList.toggle('hidden');
+    document.getElementById('toggleTerminal')?.setAttribute('aria-expanded', String(isOpen));
+  }
+  closeTerminal() {
+    document.getElementById('terminalPanel')?.classList.add('hidden');
+    document.getElementById('toggleTerminal')?.setAttribute('aria-expanded', 'false');
+    document.getElementById('toggleTerminal')?.focus();
+  }
 
   setControlsEnabled(enabled) {
-    const ids = ['btn-start', 'btn-reset', 'btn-abort', 'btn-finish', 'btn-winner-a', 'btn-winner-b', 'btn-fall-a', 'btn-fall-b'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = !enabled;
+    this.connectionState = enabled ? 'connected' : 'disconnected';
+    this.updateControlAvailability();
+  }
+
+  updateControlAvailability() {
+    const connected = this.connectionState === 'connected';
+    const state = this.displayState === 'idle' ? 0 : this.systemState;
+    const active = [1, 2, 3, 4, 5, 6, 9].includes(state);
+    const completed = [7, 8, 10, 11].includes(state);
+    const availability = {
+      'btn-start': connected && (!active || state === 9),
+      'btn-reset': connected && (active || completed),
+      'btn-abort': connected && this.currentMode === 0 && active,
+      'btn-finish': connected && this.currentMode === 1 && active,
+      'btn-winner-a': connected && this.currentMode === 0 && [6, 9, 10].includes(state),
+      'btn-winner-b': connected && this.currentMode === 0 && [6, 9, 10].includes(state),
+      'btn-fall-a': connected && this.currentMode === 0 && [6, 9].includes(state),
+      'btn-fall-b': connected && this.currentMode === 0 && [6, 9].includes(state),
+    };
+    Object.entries(availability).forEach(([id, enabled]) => {
+      const element = document.getElementById(id);
+      if (element) element.disabled = !enabled;
+    });
+    const judgingSection = document.getElementById('judgingSection');
+    if (judgingSection) {
+      judgingSection.open = Boolean(
+        connected && this.currentMode === 0 && [6, 9, 10].includes(state)
+      );
+    }
+    const shortcuts = {
+      'btn-start': 'Alt+S',
+      'btn-reset': 'Alt+R',
+    };
+    Object.entries(shortcuts).forEach(([id, key]) => {
+      document.getElementById(id)?.setAttribute('aria-keyshortcuts', key);
     });
   }
 
@@ -1263,7 +1645,7 @@ export class ClimbTimerApp {
     if (!str) return [{ climb: 30, rest: 15 }];
     const steps = [];
     const parts = str.split(',');
-    parts.forEach(p => {
+    parts.forEach((p) => {
       const pair = p.split('/');
       if (pair.length === 2) {
         const c = parseInt(pair[0], 10) || 30;
@@ -1275,14 +1657,18 @@ export class ClimbTimerApp {
   }
 
   buildCircSeqStr(steps) {
-    return steps.map(s => `${s.climb}/${s.rest}`).join(',');
+    return steps.map((s) => `${s.climb}/${s.rest}`).join(',');
   }
 
   renderCircuitStepsTable() {
     const tbody = document.getElementById('circuitStepsTableBody');
     if (!tbody) return;
 
-    if (document.activeElement && tbody.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') {
+    if (
+      document.activeElement &&
+      tbody.contains(document.activeElement) &&
+      document.activeElement.tagName === 'INPUT'
+    ) {
       const rawEl = document.getElementById('circSeqRaw');
       if (rawEl) rawEl.textContent = this.config.circ_seq;
       return;
@@ -1302,12 +1688,12 @@ export class ClimbTimerApp {
       tbody.appendChild(tr);
     });
 
-    tbody.querySelectorAll('.step-climb-input, .step-rest-input').forEach(input => {
+    tbody.querySelectorAll('.step-climb-input, .step-rest-input').forEach((input) => {
       input.addEventListener('change', () => this.updateCircuitStepsFromUI());
       input.addEventListener('input', () => this.updateCircuitStepsFromUI());
     });
 
-    tbody.querySelectorAll('.btn-remove-step').forEach(btn => {
+    tbody.querySelectorAll('.btn-remove-step').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.target.getAttribute('data-idx'), 10);
         this.removeCircuitStep(idx);
@@ -1376,7 +1762,10 @@ export class ClimbTimerApp {
     this.sendTerminalCommand('CS 2 0 0');
     const seq = '30/15,30/15';
     this.config.circ_seq = seq;
-    this.circuitSteps = [{ climb: 30, rest: 15 }, { climb: 30, rest: 15 }];
+    this.circuitSteps = [
+      { climb: 30, rest: 15 },
+      { climb: 30, rest: 15 },
+    ];
     this.circuitStepsCount = 2;
     this.renderCircuitStepsTable();
     this.renderFlowVisualizer();
@@ -1390,11 +1779,12 @@ export class ClimbTimerApp {
     const initTrans = parseInt(this.config.N, 10) || (mode === 2 ? 40 : 0);
     const climbTime = parseInt(this.config.C, 10) || (mode === 2 ? 360 : 60);
     const transTime = parseInt(this.config.T, 10) || 15;
-    const autoLoop = (mode === 2) ? false : !!parseInt(this.config.Q, 10);
+    const autoLoop = mode === 2 ? false : !!parseInt(this.config.Q, 10);
 
     let html = '<div class="flow-chain flow-chain-grid">';
 
-    if (mode === 4) { // CIRCUIT
+    if (mode === 4) {
+      // CIRCUIT
       if (initTrans > 0) {
         html += `
           <div class="flow-card flow-prep">
@@ -1454,8 +1844,9 @@ export class ClimbTimerApp {
           </div>
         `;
       }
-    } else if (mode === 1 || mode === 2) { // BOULDER / LEAD
-      const prepLabel = (mode === 2) ? 'Prep Time' : 'Init Prep';
+    } else if (mode === 1 || mode === 2) {
+      // BOULDER / LEAD
+      const prepLabel = mode === 2 ? 'Prep Time' : 'Init Prep';
       if (initTrans > 0) {
         html += `
           <div class="flow-card flow-prep">
@@ -1498,7 +1889,8 @@ export class ClimbTimerApp {
           </div>
         `;
       }
-    } else if (mode === 0) { // SPEED
+    } else if (mode === 0) {
+      // SPEED
       html += `
         <div class="flow-card flow-prep">
           <span class="flow-card-badge">Pad</span>
@@ -1524,7 +1916,8 @@ export class ClimbTimerApp {
           <span class="flow-card-time">WIN</span>
         </div>
       `;
-    } else if (mode === 3) { // CLOCK
+    } else if (mode === 3) {
+      // CLOCK
       html += `
         <div class="flow-card flow-climb">
           <span class="flow-card-badge">Realtime</span>
